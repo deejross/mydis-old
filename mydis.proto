@@ -1,0 +1,247 @@
+// Copyright 2017 Ross Peoples
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package mydis;
+
+service Mydis {
+	// -- core functions
+	// Keys returns a list of valid keys.
+	rpc Keys(Null) returns (KeysList) {}
+    // KeysWithPrefix returns a list of keys with the given prefix.
+    rpc KeysWithPrefix(Key) returns (KeysList) {}
+	// Has checks if the cache has the given key and that it is not expired.
+	rpc Has(Key) returns (Bool) {}
+	// SetExpire sets the expiration on a key.
+	rpc SetExpire(Expiration) returns (Null) {}
+    // Lock a key from being modified.
+    rpc Lock(Key) returns (Null) {}
+	// LockWithTimeout locks a key, waiting for the given number of seconds if already locked before returning an error.
+	rpc LockWithTimeout(Expiration) returns (Null) {}
+    // Unlock a key for modifications.
+    rpc Unlock(Key) returns (Null) {}
+	// UnlockThenSet unlocks a key, then immediately sets its byte array value.
+	rpc UnlockThenSet(ByteValue) returns (Null) {}
+	// UnlockThenSetList unlocks a key, then immediately sets its list value.
+	rpc UnlockThenSetList(List) returns (Null) {}
+	// Delete removes a key from the cache.
+	rpc Delete(Key) returns (Null) {}
+	// Clear the cache.
+	rpc Clear(Null) returns (Null) {}
+
+	// -- bytes functions
+	// Get gets the value for the given key as a byte slice.
+    rpc Get(Key) returns (ByteValue) {}
+	// GetMany gets a list of values from the cache.
+	rpc GetMany(KeysList) returns (Hash) {}
+	// GetWithPrefix returns the keys with the given prefix.
+	rpc GetWithPrefix(Key) returns (Hash) {}
+	// Set sets the byte value.
+    rpc Set(ByteValue) returns (Null) {}
+	// SetNX sets a value only if the key doesn't exist, returns true if changed.
+	rpc SetNX(ByteValue) returns (Bool) {}
+	// SetMany values, returning a map[key]errorText for any errors.
+	rpc SetMany(Hash) returns (ErrorHash) {}
+	// Length returns the length of the value for the given key.
+	rpc Length(Key) returns (IntValue) {}
+
+	// -- number functions
+	// GetInt gets an integer value for the given key.
+	rpc GetInt(Key) returns (IntValue) {}
+	// GetFloat gets a float value for the given key.
+	rpc GetFloat(Key) returns (FloatValue) {}
+	// SetInt sets an integer.
+	rpc SetInt(IntValue) returns (Null) {}
+	// SetFloat sets a float.
+	rpc SetFloat(FloatValue) returns (Null) {}
+	// IncrementInt increment an integer stored at the given key by the given number and returns new value.
+	rpc IncrementInt(IntValue) returns (IntValue) {}
+	// DecrementInt decrements an integer stored at the given key by the given number and returns new value.
+	rpc DecrementInt(IntValue) returns (IntValue) {}
+	// IncrementFloat increment a float stored at the given key by the given number and returns new value.
+	rpc IncrementFloat(FloatValue) returns (FloatValue) {}
+	// DecrementFloat decrements a float stored at the given key by the given number and returns new value.
+	rpc DecrementFloat(FloatValue) returns (FloatValue) {}
+
+	// -- list functions
+	// GetList gets a list from the cache.
+	rpc GetList(Key) returns (List) {}
+	// GetListItem gets a single item from a list by index, supports negative indexing.
+	rpc GetListItem(ListItem) returns (ByteValue) {}
+	// SetList sets a list in the cache.
+	rpc SetList(List) returns (Null) {}
+	// SetListItem sets a single item in a list by index.
+	rpc SetListItem(ListItem) returns (Null) {}
+	// ListLength returns the number of items in a list.
+	rpc ListLength(Key) returns (IntValue) {}
+	// ListLimit sets the maximum length of a list, removing items from the top once limit is reached.
+	rpc ListLimit(ListItem) returns (Null) {}
+	// ListInsert inserts a new item at the given index in the list.
+	rpc ListInsert(ListItem) returns (Null) {}
+	// ListAppend inserts a new item at the end of the list.
+	rpc ListAppend(ListItem) returns (Null) {}
+	// ListPopLeft returns and removes the first item in a list.
+	rpc ListPopLeft(Key) returns (ByteValue) {}
+	// ListPopRight returns and removes the last item in a list.
+	rpc ListPopRight(Key) returns (ByteValue) {}
+	// ListHas determines if a list contains an item, returns index or -1 if not found.
+	rpc ListHas(ListItem) returns (IntValue) {}
+	// ListDelete removes an item from a list by index.
+	rpc ListDelete(ListItem) returns (Null) {}
+	// ListDeleteItem removes the first occurance of value from a list, returns index of removed item or -1 for not found.
+	rpc ListDeleteItem(ListItem) returns (IntValue) {}
+
+	// -- hash functions
+	// GetHash gets a hash from the cache.
+	rpc GetHash(Key) returns (Hash) {}
+	// GetHashField gets a single value in a hash.
+	rpc GetHashField(HashField) returns (ByteValue) {}
+	// GetHashFields gets multiple hash values.
+	rpc GetHashFields(HashFieldSet) returns (Hash) {}
+	// HashHas determines if a hash has a given field.
+	rpc HashHas(HashField) returns (Bool) {}
+	// HashLength returns the number of fields in a hash.
+	rpc HashLength(Key) returns (IntValue) {}
+	// HashFields gets a list of the fields in a hash.
+	rpc HashFields(Key) returns (KeysList) {}
+	// HashValues gets a list of the values in a hash.
+	rpc HashValues(Key) returns (List) {}
+	// SetHash sets the value of a hash.
+	rpc SetHash(Hash) returns (Null) {}
+	// SetHashField sets a single value in a hash.
+	rpc SetHashField(HashField) returns (Null) {}
+	// SetHashFields sets multiple values in a hash.
+	rpc SetHashFields(Hash) returns (Null) {}
+	// DelHashField deletes a field from a hash.
+	rpc DelHashField(HashField) returns (Null) {}
+
+	// -- push functions
+	// Watch for changes to a key.
+	rpc Watch(stream WatchRequest) returns (stream Event) {}
+}
+
+// Null object.
+message Null {}
+
+// Key object.
+message Key {
+	string key = 1;
+    int64 limit = 3;
+    int64 revision = 4;
+    int64 minModRevision = 10;
+    int64 maxModRevision = 11;
+    int64 minCreateRevision = 12;
+    int64 maxCreateRevision = 13;
+}
+
+// Bool object.
+message Bool {
+	bool value = 1;
+}
+
+// Expiration object.
+message Expiration {
+	string key = 1;
+	sint64 exp = 2;
+}
+
+// ByteValue object.
+message ByteValue {
+	string key = 1;
+	bytes value = 2;
+}
+
+// IntValue object.
+message IntValue {
+	string key = 1;
+	sint64 value = 2;
+}
+
+// FloatValue object.
+message FloatValue {
+	string key = 1;
+	double value = 2;
+}
+
+// KeysList object.
+message KeysList {
+	repeated string keys = 1;
+}
+
+// List object.
+message List {
+	string key = 1;
+	repeated bytes value = 2;
+	int64 limit = 3;
+}
+
+// ListItem object.
+message ListItem {
+	string key = 1;
+	int64 index = 2;
+	bytes value = 3;
+}
+
+// ErrorHash object.
+message ErrorHash {
+	map<string, string> errors = 1;
+}
+
+// StringHash object.
+message StringHash {
+	string key = 1;
+	map<string, string> value = 2;
+}
+
+// Hash object.
+message Hash {
+	string key = 1;
+	map<string, bytes> value = 2;
+}
+
+// HashField object.
+message HashField {
+	string key = 1;
+	string field = 2;
+	bytes value = 3;
+}
+
+// HashFieldSet object.
+message HashFieldSet {
+	string key = 1;
+	repeated string field = 2;
+	repeated bytes value = 3;
+}
+
+// WatchRequest object.
+message WatchRequest {
+	string key = 1;
+	bool prefix = 2;
+	int64 rev = 3;
+	int64 id = 4;
+	bool cancel = 5;
+}
+
+// Event object.
+message Event {
+	enum EventType {
+		PUT = 0;
+		DELETE = 1;
+	}
+
+	EventType type = 1;
+	ByteValue current = 3;
+	ByteValue previous = 4;
+}

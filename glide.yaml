@@ -1,0 +1,10 @@
+package: mydis
+import:
+- package: github.com/golang/protobuf
+  subpackages:
+  - proto
+- package: google.golang.org/grpc
+  subpackages:
+  - grpclog
+  - metadata
+- package: github.com/coreos/etcd

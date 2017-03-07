@@ -1,0 +1,165 @@
+hash: b444f9af81597ceb39ac0e4575d5387a0f7da39184d6bd99e3ed43c01964782c
+updated: 2017-02-28T15:56:31.429801868-06:00
+imports:
+- name: github.com/beorn7/perks
+  version: 4c0e84591b9aa9e6dcfdf3e020114cd81f89d5f9
+  subpackages:
+  - quantile
+- name: github.com/boltdb/bolt
+  version: 583e8937c61f1af6513608ccc75c97b6abdf4ff9
+- name: github.com/cockroachdb/cmux
+  version: 112f0506e7743d64a6eb8fedbcff13d9979bbf92
+- name: github.com/coreos/etcd
+  version: 17ae440991da3bdb2df4309936dd2074f66ec394
+  subpackages:
+  - embed
+  - discovery
+  - etcdserver
+  - etcdserver/api/v2http
+  - etcdserver/api/v3rpc
+  - etcdserver/etcdserverpb
+  - pkg/cors
+  - pkg/netutil
+  - pkg/runtime
+  - pkg/transport
+  - pkg/types
+  - rafthttp
+  - wal
+  - client
+  - alarm
+  - auth
+  - compactor
+  - etcdserver/api
+  - etcdserver/api/v2http/httptypes
+  - etcdserver/membership
+  - etcdserver/stats
+  - lease
+  - lease/leasehttp
+  - mvcc
+  - mvcc/backend
+  - mvcc/mvccpb
+  - pkg/contention
+  - pkg/fileutil
+  - pkg/httputil
+  - pkg/idutil
+  - pkg/pbutil
+  - pkg/schedule
+  - pkg/wait
+  - raft
+  - raft/raftpb
+  - snap
+  - store
+  - version
+  - wal/walpb
+  - error
+  - etcdserver/auth
+  - pkg/logutil
+  - etcdserver/api/v3rpc/rpctypes
+  - auth/authpb
+  - pkg/cpuutil
+  - pkg/tlsutil
+  - pkg/ioutil
+  - pkg/crc
+  - pkg/pathutil
+  - lease/leasepb
+  - pkg/monotime
+  - pkg/adt
+  - snap/snappb
+- name: github.com/coreos/go-semver
+  version: 568e959cd89871e61434c1143528d9162da89ef2
+  subpackages:
+  - semver
+- name: github.com/coreos/go-systemd
+  version: 48702e0da86bd25e76cfef347e2adeb434a0d0a6
+  subpackages:
+  - daemon
+  - journal
+  - util
+- name: github.com/coreos/pkg
+  version: 3ac0863d7acf3bc44daf49afef8919af12f704ef
+  subpackages:
+  - capnslog
+- name: github.com/ghodss/yaml
+  version: 73d445a93680fa1a78ae23a5839bad48f32ba1ee
+- name: github.com/gogo/protobuf
+  version: 909568be09de550ed094403c2bf8a261b5bb730a
+  subpackages:
+  - proto
+- name: github.com/golang/protobuf
+  version: 4bd1920723d7b7c925de087aa32e2187708897f7
+  subpackages:
+  - proto
+  - jsonpb
+- name: github.com/google/btree
+  version: 925471ac9e2131377a91e1595defec898166fe49
+- name: github.com/grpc-ecosystem/go-grpc-prometheus
+  version: 6b7015e65d366bf3f19b2b2a000a831940f0f7e0
+- name: github.com/grpc-ecosystem/grpc-gateway
+  version: 84398b94e188ee336f307779b57b3aa91af7063c
+  subpackages:
+  - runtime
+  - runtime/internal
+  - utilities
+- name: github.com/jonboulle/clockwork
+  version: 2eee05ed794112d45db504eb05aa693efd2b8b09
+- name: github.com/matttproud/golang_protobuf_extensions
+  version: c12348ce28de40eed0136aa2b644d0ee0650e56c
+  subpackages:
+  - pbutil
+- name: github.com/prometheus/client_golang
+  version: c5b7fccd204277076155f10851dad72b76a49317
+  subpackages:
+  - prometheus
+- name: github.com/prometheus/client_model
+  version: 6f3806018612930941127f2a7c6c453ba2c527d2
+  subpackages:
+  - go
+- name: github.com/prometheus/common
+  version: 49fee292b27bfff7f354ee0f64e1bc4850462edf
+  subpackages:
+  - expfmt
+  - model
+  - internal/bitbucket.org/ww/goautoneg
+- name: github.com/prometheus/procfs
+  version: a1dba9ce8baed984a2495b658c82687f8157b98f
+  subpackages:
+  - xfs
+- name: github.com/ugorji/go
+  version: ded73eae5db7e7a0ef6f55aace87a2873c5d2b74
+  subpackages:
+  - codec
+- name: github.com/xiang90/probing
+  version: 07dd2e8dfe18522e9c447ba95f2fe95262f63bb2
+- name: golang.org/x/crypto
+  version: 1351f936d976c60a0a48d728281922cf63eafb8d
+  subpackages:
+  - bcrypt
+  - blowfish
+- name: golang.org/x/net
+  version: f2499483f923065a842d38eb4c7f1927e6fc6e6d
+  subpackages:
+  - context
+  - http2
+  - http2/hpack
+  - internal/timeseries
+  - trace
+  - idna
+  - lex/httplex
+- name: golang.org/x/sys
+  version: 21f2569f6feb83b68a25c98c1b20eca5d4e1e6ae
+  subpackages:
+  - unix
+- name: google.golang.org/grpc
+  version: 777daa17ff9b5daef1cfdf915088a2ada3332bf0
+  subpackages:
+  - grpclog
+  - metadata
+  - credentials
+  - codes
+  - internal
+  - naming
+  - transport
+  - peer
+- name: gopkg.in/yaml.v2
+  version: 53feefa2559fb8dfa8d81baad31be332c97d6c77
+devImports: []
