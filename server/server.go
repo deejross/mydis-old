@@ -16,13 +16,11 @@ package main
 
 import (
 	"log"
-	"mydis"
-
 	"net/url"
-
 	"os"
 
 	"github.com/coreos/etcd/embed"
+	"github.com/deejross/mydis"
 )
 
 var (
