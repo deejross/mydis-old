@@ -1,7 +1,7 @@
-Mydis
-=====
+# Mydis
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/deejross/mydis)](https://goreportcard.com/report/github.com/deejross/mydis)
+
 Version: 0.5.0
 
 Introduction
@@ -29,7 +29,7 @@ Without any configuration, Mydis starts up as a single node cluster on port 8383
 To change the storage limit from the 2GB default, set `quota-backend-bytes` to the number of bytes the new limit should be. Clustering configuration is explained in another section.
 It is recommended to leave `listen-client-urls` and `advertise-client-urls` as an empty list unless you want clients to be able to bypass Mydis and connect directly to Etcd.
 
-See Etcd's documentation for more configuration options: https://coreos.com/etcd/docs/latest/op-guide/configuration.html
+See Etcd's documentation for more [configuration options](https://coreos.com/etcd/docs/latest/op-guide/configuration.html).
 
 The listening port can be changed from the default os 8383 by specifying the environment variable `MYDIS_ADDRESS`. The default value is `0.0.0.0:8383`.
 
@@ -86,7 +86,7 @@ Some notes about this configuration:
 - The only fields that should change between nodes are: `initial-advertise-peer-urls`, `listen-peer-urls`, and `name`.
 - While setting `initial-cluster-token` is optional, it's always a good idea to give each cluster a name.
 
-See Etcd's clustering guide for more information: https://coreos.com/etcd/docs/latest/op-guide/clustering.html
+See Etcd's [clustering guide](https://coreos.com/etcd/docs/latest/op-guide/clustering.html) for more information.
 
 Server API
 ----------
@@ -229,4 +229,4 @@ This is a list of possible enhancements that could be made in the future.
 
 License
 -------
-Mydis is licensed under the Apache 2.0 license. See the [LICENSE] (LICENSE) file for details.
+Mydis is licensed under the Apache 2.0 license. See the [LICENSE](LICENSE) file for details.
