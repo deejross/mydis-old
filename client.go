@@ -492,7 +492,7 @@ func (c *Client) ListDelete(key string, index int64) error {
 	return err
 }
 
-// ListDeleteItem removes the first occurence of value from a list, returns index or -1 if not found.
+// ListDeleteItem removes the first occurrence of value from a list, returns index or -1 if not found.
 func (c *Client) ListDeleteItem(key string, v interface{}) (int64, error) {
 	b, err := NewValue(v).Bytes()
 	if err != nil {

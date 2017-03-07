@@ -157,7 +157,7 @@ Lists are lists of values.
 - `ListPopLeft(key) Value`: Remove and return the first item in a list, returns ErrListEmpty if list is empty.
 - `ListPopRight(key) Value`: Remove and return the last item in a list, returns ErrListEmpty if list is empty.
 - `ListDelete(key, index)`: Remove an item from a list by index, returns an error if key or index doesn't exist.
-- `ListDeleteItem(key, value) int64`: Search for and remove the first occurance of value from the list, returns index of item or -1 for not found.
+- `ListDeleteItem(key, value) int64`: Search for and remove the first occurrence of value from the list, returns index of item or -1 for not found.
 - `ListLength(key) int64`: Get the number of items in a list.
 
 Hashes
