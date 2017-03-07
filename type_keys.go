@@ -95,7 +95,7 @@ func (s *Server) Delete(ctx context.Context, key *Key) (*Null, error) {
 	for {
 		if res, err := s.cache.Server.Txn(ctx, &pb.TxnRequest{
 			Compare: []*pb.Compare{
-				&pb.Compare{
+				{
 					Key:    keyLock,
 					Target: pb.Compare_VALUE,
 					Result: pb.Compare_EQUAL,
@@ -105,7 +105,7 @@ func (s *Server) Delete(ctx context.Context, key *Key) (*Null, error) {
 				},
 			},
 			Failure: []*pb.RequestOp{
-				&pb.RequestOp{
+				{
 					Request: &pb.RequestOp_RequestDeleteRange{
 						RequestDeleteRange: &pb.DeleteRangeRequest{
 							Key: StringToBytes(key.Key),

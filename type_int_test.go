@@ -49,7 +49,7 @@ func TestIncrementInt(t *testing.T) {
 	if iv, err := server.GetInt(ctx, &Key{Key: "int1"}); err != nil {
 		t.Error(err)
 	} else if iv.Value != 52 {
-		t.Error("New value not commited")
+		t.Error("New value not committed")
 	}
 
 	if iv, err := server.IncrementInt(ctx, &IntValue{Key: "newInt", Value: 42}); err != nil {
@@ -61,7 +61,7 @@ func TestIncrementInt(t *testing.T) {
 	if iv, err := server.GetInt(ctx, &Key{Key: "newInt"}); err != nil {
 		t.Error(err)
 	} else if iv.Value != 42 {
-		t.Error("New value not commited, got:", iv.Value)
+		t.Error("New value not committed, got:", iv.Value)
 	}
 }
 
@@ -80,7 +80,7 @@ func TestDecrementInt(t *testing.T) {
 	if iv, err := server.GetInt(ctx, &Key{Key: "int1"}); err != nil {
 		t.Error(err)
 	} else if iv.Value != 32 {
-		t.Error("New value not commited")
+		t.Error("New value not committed")
 	}
 
 	if iv, err := server.DecrementInt(ctx, &IntValue{Key: "newInt", Value: 42}); err != nil {
@@ -92,6 +92,6 @@ func TestDecrementInt(t *testing.T) {
 	if iv, err := server.GetInt(ctx, &Key{Key: "newInt"}); err != nil {
 		t.Error(err)
 	} else if iv.Value != -42 {
-		t.Error("New value not commited, got:", iv.Value)
+		t.Error("New value not committed, got:", iv.Value)
 	}
 }

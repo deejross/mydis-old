@@ -239,7 +239,7 @@ func ListToValues(lst [][]byte) []Value {
 	return newLst
 }
 
-// ListStringToValues convers a []string to []Value.
+// ListStringToValues converts a []string to []Value.
 func ListStringToValues(lst []string) []Value {
 	if lst == nil {
 		return []Value{}

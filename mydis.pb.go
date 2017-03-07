@@ -671,7 +671,7 @@ type MydisClient interface {
 	ListHas(ctx context.Context, in *ListItem, opts ...grpc.CallOption) (*IntValue, error)
 	// ListDelete removes an item from a list by index.
 	ListDelete(ctx context.Context, in *ListItem, opts ...grpc.CallOption) (*Null, error)
-	// ListDeleteItem removes the first occurance of value from a list, returns index of removed item or -1 for not found.
+	// ListDeleteItem removes the first occurence of value from a list, returns index of removed item or -1 for not found.
 	ListDeleteItem(ctx context.Context, in *ListItem, opts ...grpc.CallOption) (*IntValue, error)
 	// -- hash functions
 	// GetHash gets a hash from the cache.
@@ -1273,7 +1273,7 @@ type MydisServer interface {
 	ListHas(context.Context, *ListItem) (*IntValue, error)
 	// ListDelete removes an item from a list by index.
 	ListDelete(context.Context, *ListItem) (*Null, error)
-	// ListDeleteItem removes the first occurance of value from a list, returns index of removed item or -1 for not found.
+	// ListDeleteItem removes the first occurence of value from a list, returns index of removed item or -1 for not found.
 	ListDeleteItem(context.Context, *ListItem) (*IntValue, error)
 	// -- hash functions
 	// GetHash gets a hash from the cache.

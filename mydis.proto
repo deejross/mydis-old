@@ -100,7 +100,7 @@ service Mydis {
 	rpc ListHas(ListItem) returns (IntValue) {}
 	// ListDelete removes an item from a list by index.
 	rpc ListDelete(ListItem) returns (Null) {}
-	// ListDeleteItem removes the first occurance of value from a list, returns index of removed item or -1 for not found.
+	// ListDeleteItem removes the first occurence of value from a list, returns index of removed item or -1 for not found.
 	rpc ListDeleteItem(ListItem) returns (IntValue) {}
 
 	// -- hash functions

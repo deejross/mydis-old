@@ -306,7 +306,7 @@ func (s *Server) ListDelete(ctx context.Context, li *ListItem) (*Null, error) {
 	return s.UnlockThenSetList(ctx, lst)
 }
 
-// ListDeleteItem removes the first occurance of value from a list, returns index of removed item or -1 for not found.
+// ListDeleteItem removes the first occurence of value from a list, returns index of removed item or -1 for not found.
 func (s *Server) ListDeleteItem(ctx context.Context, li *ListItem) (*IntValue, error) {
 	key := &Key{Key: li.Key}
 	if _, err := s.Lock(ctx, key); err != nil {

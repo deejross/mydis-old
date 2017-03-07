@@ -64,7 +64,7 @@ func (s *Server) LockWithTimeout(ctx context.Context, ex *Expiration) (*Null, er
 	for {
 		if res, err := s.cache.Server.Txn(ctx, &pb.TxnRequest{
 			Compare: []*pb.Compare{
-				&pb.Compare{
+				{
 					Key:    keyLock,
 					Target: pb.Compare_VALUE,
 					Result: pb.Compare_EQUAL,
@@ -74,7 +74,7 @@ func (s *Server) LockWithTimeout(ctx context.Context, ex *Expiration) (*Null, er
 				},
 			},
 			Failure: []*pb.RequestOp{
-				&pb.RequestOp{
+				{
 					Request: &pb.RequestOp_RequestPut{
 						RequestPut: &pb.PutRequest{
 							Key:   keyLock,
@@ -115,7 +115,7 @@ func (s *Server) UnlockThenSet(ctx context.Context, val *ByteValue) (*Null, erro
 	keyLock := getLockName(val.Key)
 	_, err := s.cache.Server.Txn(ctx, &pb.TxnRequest{
 		Compare: []*pb.Compare{
-			&pb.Compare{
+			{
 				Key:    ZeroByte,
 				Target: pb.Compare_VALUE,
 				Result: pb.Compare_EQUAL,
@@ -125,14 +125,14 @@ func (s *Server) UnlockThenSet(ctx context.Context, val *ByteValue) (*Null, erro
 			},
 		},
 		Failure: []*pb.RequestOp{
-			&pb.RequestOp{
+			{
 				Request: &pb.RequestOp_RequestDeleteRange{
 					RequestDeleteRange: &pb.DeleteRangeRequest{
 						Key: keyLock,
 					},
 				},
 			},
-			&pb.RequestOp{
+			{
 				Request: &pb.RequestOp_RequestPut{
 					RequestPut: &pb.PutRequest{
 						Key:   StringToBytes(val.Key),

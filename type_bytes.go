@@ -49,7 +49,7 @@ func (s *Server) GetMany(ctx context.Context, keys *KeysList) (*Hash, error) {
 
 	req := &pb.TxnRequest{
 		Compare: []*pb.Compare{
-			&pb.Compare{
+			{
 				Key:    ZeroByte,
 				Target: pb.Compare_VALUE,
 				Result: pb.Compare_EQUAL,
@@ -118,7 +118,7 @@ func (s *Server) Set(ctx context.Context, val *ByteValue) (*Null, error) {
 	for {
 		if res, err := s.cache.Server.Txn(ctx, &pb.TxnRequest{
 			Compare: []*pb.Compare{
-				&pb.Compare{
+				{
 					Key:    keyLock,
 					Target: pb.Compare_VALUE,
 					Result: pb.Compare_EQUAL,
@@ -128,7 +128,7 @@ func (s *Server) Set(ctx context.Context, val *ByteValue) (*Null, error) {
 				},
 			},
 			Failure: []*pb.RequestOp{
-				&pb.RequestOp{
+				{
 					Request: &pb.RequestOp_RequestPut{
 						RequestPut: &pb.PutRequest{
 							Key:   StringToBytes(val.Key),

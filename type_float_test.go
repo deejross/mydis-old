@@ -49,7 +49,7 @@ func TestIncrementFloat(t *testing.T) {
 	if fv, err := server.GetFloat(ctx, &Key{Key: "float1"}); err != nil {
 		t.Error(err)
 	} else if fv.Value != 52.6 {
-		t.Error("New value not commited")
+		t.Error("New value not committed")
 	}
 
 	if fv, err := server.IncrementFloat(ctx, &FloatValue{Key: "newFloat", Value: 42.5}); err != nil {
@@ -61,7 +61,7 @@ func TestIncrementFloat(t *testing.T) {
 	if fv, err := server.GetFloat(ctx, &Key{Key: "newFloat"}); err != nil {
 		t.Error(err)
 	} else if fv.Value != 42.5 {
-		t.Error("New value not commited, got:", fv.Value)
+		t.Error("New value not committed, got:", fv.Value)
 	}
 }
 
@@ -80,7 +80,7 @@ func TestDecrementFloat(t *testing.T) {
 	if fv, err := server.GetFloat(ctx, &Key{Key: "float1"}); err != nil {
 		t.Error(err)
 	} else if fv.Value != 32.4 {
-		t.Error("New value not commited")
+		t.Error("New value not committed")
 	}
 
 	if fv, err := server.DecrementFloat(ctx, &FloatValue{Key: "newFloat", Value: 42.5}); err != nil {
@@ -92,6 +92,6 @@ func TestDecrementFloat(t *testing.T) {
 	if fv, err := server.GetFloat(ctx, &Key{Key: "newFloat"}); err != nil {
 		t.Error(err)
 	} else if fv.Value != -42.5 {
-		t.Error("New value not commited, got:", fv.Value)
+		t.Error("New value not committed, got:", fv.Value)
 	}
 }

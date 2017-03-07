@@ -1,6 +1,7 @@
 Mydis
 =====
 
+[![Go Report Card](https://goreportcard.com/badge/github.com/deejross/mydis)](https://goreportcard.com/report/github.com/deejross/mydis)
 Version: 0.5.0
 
 Introduction
