@@ -20,7 +20,6 @@ Under the hood, the production-ready [Etcd](https://etcd.io/) system is used. Th
 > Etcd is a distributed, reliable key-value store for the most critical data of a distributed system.
 
 In an effort to keep the focus on reliability and consistency, the authors of Etcd decided to allow only a single data type for both keys and values: byte arrays.
-For more information on replication and persistence, see the Etcd documentation.
 Mydis builds upon the solid Etcd framework to provide more data types and features such as atomic list operations and distributed locks.
 
 Configuration
