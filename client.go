@@ -41,18 +41,19 @@ var (
 )
 
 var knownErrors = map[string]error{
-	"rpc error: code = 2 desc = etcdserver: key not found":      ErrKeyNotFound,
-	"rpc error: code = 2 desc = Key is locked":                  ErrKeyLocked,
-	"rpc error: code = 2 desc = List is empty":                  ErrListEmpty,
-	"rpc error: code = 2 desc = etcdserver: Index out of range": ErrListIndexOutOfRange,
-	"rpc error: code = 2 desc = Hash field does not exist":      ErrHashFieldNotFound,
+	"etcdserver: key not found":      ErrKeyNotFound,
+	"Key is locked":                  ErrKeyLocked,
+	"List is empty":                  ErrListEmpty,
+	"etcdserver: Index out of range": ErrListIndexOutOfRange,
+	"Hash field does not exist":      ErrHashFieldNotFound,
 }
 
 func normalizeError(err error) error {
 	if err == nil {
 		return nil
 	}
-	if newErr, ok := knownErrors[err.Error()]; ok {
+	errDesc := grpc.ErrorDesc(err)
+	if newErr, ok := knownErrors[errDesc]; ok {
 		return newErr
 	}
 	return err
