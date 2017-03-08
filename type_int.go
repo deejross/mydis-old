@@ -15,6 +15,8 @@
 package mydis
 
 import (
+	"strings"
+
 	"github.com/coreos/etcd/etcdserver"
 	"github.com/gogo/protobuf/proto"
 	"golang.org/x/net/context"
@@ -28,7 +30,9 @@ func (s *Server) GetInt(ctx context.Context, key *Key) (*IntValue, error) {
 	}
 
 	iv := &IntValue{}
-	if err := proto.Unmarshal(bv.Value, iv); err != nil {
+	if err := proto.Unmarshal(bv.Value, iv); strings.HasPrefix(err.Error(), "proto: can't skip unknown wire type") {
+		return nil, ErrTypeMismatch
+	} else if err != nil {
 		return nil, err
 	}
 	return iv, nil
@@ -54,12 +58,14 @@ func (s *Server) IncrementInt(ctx context.Context, iv *IntValue) (*IntValue, err
 	if err == etcdserver.ErrKeyNotFound {
 		oldiv = &IntValue{Value: 0}
 	} else if err != nil {
+		s.Unlock(ctx, key)
 		return nil, err
 	}
 
 	newval := &IntValue{Value: oldiv.Value + iv.Value}
 	b, err := proto.Marshal(newval)
 	if err != nil {
+		s.Unlock(ctx, key)
 		return nil, err
 	}
 

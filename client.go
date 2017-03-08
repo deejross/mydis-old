@@ -46,6 +46,7 @@ var knownErrors = map[string]error{
 	"List is empty":                  ErrListEmpty,
 	"etcdserver: Index out of range": ErrListIndexOutOfRange,
 	"Hash field does not exist":      ErrHashFieldNotFound,
+	"Type mismatch":                  ErrTypeMismatch,
 }
 
 func normalizeError(err error) error {

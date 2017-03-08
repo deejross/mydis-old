@@ -15,6 +15,8 @@
 package mydis
 
 import (
+	"strings"
+
 	"github.com/coreos/etcd/etcdserver"
 	"github.com/gogo/protobuf/proto"
 	"golang.org/x/net/context"
@@ -28,7 +30,9 @@ func (s *Server) GetFloat(ctx context.Context, key *Key) (*FloatValue, error) {
 	}
 
 	fv := &FloatValue{}
-	if err := proto.Unmarshal(bv.Value, fv); err != nil {
+	if err := proto.Unmarshal(bv.Value, fv); strings.HasPrefix(err.Error(), "proto: can't skip unknown wire type") {
+		return nil, ErrTypeMismatch
+	} else if err != nil {
 		return nil, err
 	}
 	return fv, nil
@@ -54,12 +58,14 @@ func (s *Server) IncrementFloat(ctx context.Context, fv *FloatValue) (*FloatValu
 	if err == etcdserver.ErrKeyNotFound {
 		oldfv = &FloatValue{Value: 0}
 	} else if err != nil {
+		s.Unlock(ctx, key)
 		return nil, err
 	}
 
 	newval := &FloatValue{Value: oldfv.Value + fv.Value}
 	b, err := proto.Marshal(newval)
 	if err != nil {
+		s.Unlock(ctx, key)
 		return nil, err
 	}
 

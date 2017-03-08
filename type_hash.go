@@ -17,6 +17,7 @@ package mydis
 import (
 	"errors"
 	"sort"
+	"strings"
 
 	"github.com/coreos/etcd/etcdserver"
 	"github.com/gogo/protobuf/proto"
@@ -35,7 +36,9 @@ func (s *Server) GetHash(ctx context.Context, key *Key) (*Hash, error) {
 		return nil, err
 	}
 	h := &Hash{}
-	if err := proto.Unmarshal(res.Value, h); err != nil {
+	if err := proto.Unmarshal(res.Value, h); strings.HasPrefix(err.Error(), "proto: can't skip unknown wire type") {
+		return nil, ErrTypeMismatch
+	} else if err != nil {
 		return nil, err
 	}
 	return h, nil

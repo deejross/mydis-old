@@ -35,6 +35,7 @@ func main() {
 	if err != nil {
 		log.Fatalln(err)
 	}
+	select {} // block forever
 }
 
 func getAddress() string {

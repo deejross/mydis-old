@@ -27,6 +27,8 @@ import (
 var (
 	// ErrInvalidKey signals that the given key name is invalid.
 	ErrInvalidKey = errors.New("Invalid key name")
+	// ErrTypeMismatch signals that the type of value being requested is unexpected.
+	ErrTypeMismatch = errors.New("Type mismatch")
 )
 
 // Get a byte array from the cache.

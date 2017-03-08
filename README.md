@@ -216,17 +216,9 @@ if err != nil {
 }
 ```
 
-Expected in Next Release
-------------------------
-This is a list of changes expected to be implemented in the next release:
-- Command-line utility
-- Authentication
-- Blocking list pop
-
-Possible Future Enhancements
-----------------------------
-This is a list of possible enhancements that could be made in the future.
-- SQL/Table-like functionality (think hashlist)
+Limitations
+-----------
+Etcd limits message sizes to 1.5MB, so values cannot be larger than this. The maximum storage size is configurable up to 8GB.
 
 License
 -------
