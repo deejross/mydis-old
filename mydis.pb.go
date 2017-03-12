@@ -26,6 +26,40 @@ It has these top-level messages:
 	HashFieldSet
 	WatchRequest
 	Event
+	Permission
+	ResponseHeader
+	AuthEnableRequest
+	AuthDisableRequest
+	AuthenticateRequest
+	AuthUserAddRequest
+	AuthUserGetRequest
+	AuthUserDeleteRequest
+	AuthUserChangePasswordRequest
+	AuthUserGrantRoleRequest
+	AuthUserRevokeRoleRequest
+	AuthRoleAddRequest
+	AuthRoleGetRequest
+	AuthUserListRequest
+	AuthRoleListRequest
+	AuthRoleDeleteRequest
+	AuthRoleGrantPermissionRequest
+	AuthRoleRevokePermissionRequest
+	AuthEnableResponse
+	AuthDisableResponse
+	AuthenticateResponse
+	AuthUserAddResponse
+	AuthUserGetResponse
+	AuthUserDeleteResponse
+	AuthUserChangePasswordResponse
+	AuthUserGrantRoleResponse
+	AuthUserRevokeRoleResponse
+	AuthRoleAddResponse
+	AuthRoleGetResponse
+	AuthRoleListResponse
+	AuthUserListResponse
+	AuthRoleDeleteResponse
+	AuthRoleGrantPermissionResponse
+	AuthRoleRevokePermissionResponse
 */
 package mydis
 
@@ -69,6 +103,30 @@ func (x Event_EventType) String() string {
 	return proto.EnumName(Event_EventType_name, int32(x))
 }
 func (Event_EventType) EnumDescriptor() ([]byte, []int) { return fileDescriptor0, []int{16, 0} }
+
+type Permission_Type int32
+
+const (
+	Permission_READ      Permission_Type = 0
+	Permission_WRITE     Permission_Type = 1
+	Permission_READWRITE Permission_Type = 2
+)
+
+var Permission_Type_name = map[int32]string{
+	0: "READ",
+	1: "WRITE",
+	2: "READWRITE",
+}
+var Permission_Type_value = map[string]int32{
+	"READ":      0,
+	"WRITE":     1,
+	"READWRITE": 2,
+}
+
+func (x Permission_Type) String() string {
+	return proto.EnumName(Permission_Type_name, int32(x))
+}
+func (Permission_Type) EnumDescriptor() ([]byte, []int) { return fileDescriptor0, []int{17, 0} }
 
 // Null object.
 type Null struct {
@@ -559,6 +617,683 @@ func (m *Event) GetPrevious() *ByteValue {
 	return nil
 }
 
+// -- Etcd auth passthrough messages
+// Permission is a single entity
+type Permission struct {
+	PermType Permission_Type `protobuf:"varint,1,opt,name=permType,enum=mydis.Permission_Type" json:"permType,omitempty"`
+	Key      []byte          `protobuf:"bytes,2,opt,name=key,proto3" json:"key,omitempty"`
+	RangeEnd []byte          `protobuf:"bytes,3,opt,name=range_end,json=rangeEnd,proto3" json:"range_end,omitempty"`
+}
+
+func (m *Permission) Reset()                    { *m = Permission{} }
+func (m *Permission) String() string            { return proto.CompactTextString(m) }
+func (*Permission) ProtoMessage()               {}
+func (*Permission) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{17} }
+
+func (m *Permission) GetPermType() Permission_Type {
+	if m != nil {
+		return m.PermType
+	}
+	return Permission_READ
+}
+
+func (m *Permission) GetKey() []byte {
+	if m != nil {
+		return m.Key
+	}
+	return nil
+}
+
+func (m *Permission) GetRangeEnd() []byte {
+	if m != nil {
+		return m.RangeEnd
+	}
+	return nil
+}
+
+type ResponseHeader struct {
+	// cluster_id is the ID of the cluster which sent the response.
+	ClusterId uint64 `protobuf:"varint,1,opt,name=cluster_id,json=clusterId" json:"cluster_id,omitempty"`
+	// member_id is the ID of the member which sent the response.
+	MemberId uint64 `protobuf:"varint,2,opt,name=member_id,json=memberId" json:"member_id,omitempty"`
+	// revision is the key-value store revision when the request was applied.
+	Revision int64 `protobuf:"varint,3,opt,name=revision" json:"revision,omitempty"`
+	// raft_term is the raft term when the request was applied.
+	RaftTerm uint64 `protobuf:"varint,4,opt,name=raft_term,json=raftTerm" json:"raft_term,omitempty"`
+}
+
+func (m *ResponseHeader) Reset()                    { *m = ResponseHeader{} }
+func (m *ResponseHeader) String() string            { return proto.CompactTextString(m) }
+func (*ResponseHeader) ProtoMessage()               {}
+func (*ResponseHeader) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{18} }
+
+func (m *ResponseHeader) GetClusterId() uint64 {
+	if m != nil {
+		return m.ClusterId
+	}
+	return 0
+}
+
+func (m *ResponseHeader) GetMemberId() uint64 {
+	if m != nil {
+		return m.MemberId
+	}
+	return 0
+}
+
+func (m *ResponseHeader) GetRevision() int64 {
+	if m != nil {
+		return m.Revision
+	}
+	return 0
+}
+
+func (m *ResponseHeader) GetRaftTerm() uint64 {
+	if m != nil {
+		return m.RaftTerm
+	}
+	return 0
+}
+
+type AuthEnableRequest struct {
+}
+
+func (m *AuthEnableRequest) Reset()                    { *m = AuthEnableRequest{} }
+func (m *AuthEnableRequest) String() string            { return proto.CompactTextString(m) }
+func (*AuthEnableRequest) ProtoMessage()               {}
+func (*AuthEnableRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{19} }
+
+type AuthDisableRequest struct {
+}
+
+func (m *AuthDisableRequest) Reset()                    { *m = AuthDisableRequest{} }
+func (m *AuthDisableRequest) String() string            { return proto.CompactTextString(m) }
+func (*AuthDisableRequest) ProtoMessage()               {}
+func (*AuthDisableRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{20} }
+
+type AuthenticateRequest struct {
+	Name     string `protobuf:"bytes,1,opt,name=name" json:"name,omitempty"`
+	Password string `protobuf:"bytes,2,opt,name=password" json:"password,omitempty"`
+}
+
+func (m *AuthenticateRequest) Reset()                    { *m = AuthenticateRequest{} }
+func (m *AuthenticateRequest) String() string            { return proto.CompactTextString(m) }
+func (*AuthenticateRequest) ProtoMessage()               {}
+func (*AuthenticateRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{21} }
+
+func (m *AuthenticateRequest) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+func (m *AuthenticateRequest) GetPassword() string {
+	if m != nil {
+		return m.Password
+	}
+	return ""
+}
+
+type AuthUserAddRequest struct {
+	Name     string `protobuf:"bytes,1,opt,name=name" json:"name,omitempty"`
+	Password string `protobuf:"bytes,2,opt,name=password" json:"password,omitempty"`
+}
+
+func (m *AuthUserAddRequest) Reset()                    { *m = AuthUserAddRequest{} }
+func (m *AuthUserAddRequest) String() string            { return proto.CompactTextString(m) }
+func (*AuthUserAddRequest) ProtoMessage()               {}
+func (*AuthUserAddRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{22} }
+
+func (m *AuthUserAddRequest) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+func (m *AuthUserAddRequest) GetPassword() string {
+	if m != nil {
+		return m.Password
+	}
+	return ""
+}
+
+type AuthUserGetRequest struct {
+	Name string `protobuf:"bytes,1,opt,name=name" json:"name,omitempty"`
+}
+
+func (m *AuthUserGetRequest) Reset()                    { *m = AuthUserGetRequest{} }
+func (m *AuthUserGetRequest) String() string            { return proto.CompactTextString(m) }
+func (*AuthUserGetRequest) ProtoMessage()               {}
+func (*AuthUserGetRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{23} }
+
+func (m *AuthUserGetRequest) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+type AuthUserDeleteRequest struct {
+	// name is the name of the user to delete.
+	Name string `protobuf:"bytes,1,opt,name=name" json:"name,omitempty"`
+}
+
+func (m *AuthUserDeleteRequest) Reset()                    { *m = AuthUserDeleteRequest{} }
+func (m *AuthUserDeleteRequest) String() string            { return proto.CompactTextString(m) }
+func (*AuthUserDeleteRequest) ProtoMessage()               {}
+func (*AuthUserDeleteRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{24} }
+
+func (m *AuthUserDeleteRequest) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+type AuthUserChangePasswordRequest struct {
+	// name is the name of the user whose password is being changed.
+	Name string `protobuf:"bytes,1,opt,name=name" json:"name,omitempty"`
+	// password is the new password for the user.
+	Password string `protobuf:"bytes,2,opt,name=password" json:"password,omitempty"`
+}
+
+func (m *AuthUserChangePasswordRequest) Reset()                    { *m = AuthUserChangePasswordRequest{} }
+func (m *AuthUserChangePasswordRequest) String() string            { return proto.CompactTextString(m) }
+func (*AuthUserChangePasswordRequest) ProtoMessage()               {}
+func (*AuthUserChangePasswordRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{25} }
+
+func (m *AuthUserChangePasswordRequest) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+func (m *AuthUserChangePasswordRequest) GetPassword() string {
+	if m != nil {
+		return m.Password
+	}
+	return ""
+}
+
+type AuthUserGrantRoleRequest struct {
+	// user is the name of the user which should be granted a given role.
+	User string `protobuf:"bytes,1,opt,name=user" json:"user,omitempty"`
+	// role is the name of the role to grant to the user.
+	Role string `protobuf:"bytes,2,opt,name=role" json:"role,omitempty"`
+}
+
+func (m *AuthUserGrantRoleRequest) Reset()                    { *m = AuthUserGrantRoleRequest{} }
+func (m *AuthUserGrantRoleRequest) String() string            { return proto.CompactTextString(m) }
+func (*AuthUserGrantRoleRequest) ProtoMessage()               {}
+func (*AuthUserGrantRoleRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{26} }
+
+func (m *AuthUserGrantRoleRequest) GetUser() string {
+	if m != nil {
+		return m.User
+	}
+	return ""
+}
+
+func (m *AuthUserGrantRoleRequest) GetRole() string {
+	if m != nil {
+		return m.Role
+	}
+	return ""
+}
+
+type AuthUserRevokeRoleRequest struct {
+	Name string `protobuf:"bytes,1,opt,name=name" json:"name,omitempty"`
+	Role string `protobuf:"bytes,2,opt,name=role" json:"role,omitempty"`
+}
+
+func (m *AuthUserRevokeRoleRequest) Reset()                    { *m = AuthUserRevokeRoleRequest{} }
+func (m *AuthUserRevokeRoleRequest) String() string            { return proto.CompactTextString(m) }
+func (*AuthUserRevokeRoleRequest) ProtoMessage()               {}
+func (*AuthUserRevokeRoleRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{27} }
+
+func (m *AuthUserRevokeRoleRequest) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+func (m *AuthUserRevokeRoleRequest) GetRole() string {
+	if m != nil {
+		return m.Role
+	}
+	return ""
+}
+
+type AuthRoleAddRequest struct {
+	// name is the name of the role to add to the authentication system.
+	Name string `protobuf:"bytes,1,opt,name=name" json:"name,omitempty"`
+}
+
+func (m *AuthRoleAddRequest) Reset()                    { *m = AuthRoleAddRequest{} }
+func (m *AuthRoleAddRequest) String() string            { return proto.CompactTextString(m) }
+func (*AuthRoleAddRequest) ProtoMessage()               {}
+func (*AuthRoleAddRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{28} }
+
+func (m *AuthRoleAddRequest) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+type AuthRoleGetRequest struct {
+	Role string `protobuf:"bytes,1,opt,name=role" json:"role,omitempty"`
+}
+
+func (m *AuthRoleGetRequest) Reset()                    { *m = AuthRoleGetRequest{} }
+func (m *AuthRoleGetRequest) String() string            { return proto.CompactTextString(m) }
+func (*AuthRoleGetRequest) ProtoMessage()               {}
+func (*AuthRoleGetRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{29} }
+
+func (m *AuthRoleGetRequest) GetRole() string {
+	if m != nil {
+		return m.Role
+	}
+	return ""
+}
+
+type AuthUserListRequest struct {
+}
+
+func (m *AuthUserListRequest) Reset()                    { *m = AuthUserListRequest{} }
+func (m *AuthUserListRequest) String() string            { return proto.CompactTextString(m) }
+func (*AuthUserListRequest) ProtoMessage()               {}
+func (*AuthUserListRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{30} }
+
+type AuthRoleListRequest struct {
+}
+
+func (m *AuthRoleListRequest) Reset()                    { *m = AuthRoleListRequest{} }
+func (m *AuthRoleListRequest) String() string            { return proto.CompactTextString(m) }
+func (*AuthRoleListRequest) ProtoMessage()               {}
+func (*AuthRoleListRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{31} }
+
+type AuthRoleDeleteRequest struct {
+	Role string `protobuf:"bytes,1,opt,name=role" json:"role,omitempty"`
+}
+
+func (m *AuthRoleDeleteRequest) Reset()                    { *m = AuthRoleDeleteRequest{} }
+func (m *AuthRoleDeleteRequest) String() string            { return proto.CompactTextString(m) }
+func (*AuthRoleDeleteRequest) ProtoMessage()               {}
+func (*AuthRoleDeleteRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{32} }
+
+func (m *AuthRoleDeleteRequest) GetRole() string {
+	if m != nil {
+		return m.Role
+	}
+	return ""
+}
+
+type AuthRoleGrantPermissionRequest struct {
+	// name is the name of the role which will be granted the permission.
+	Name string `protobuf:"bytes,1,opt,name=name" json:"name,omitempty"`
+	// perm is the permission to grant to the role.
+	Perm *Permission `protobuf:"bytes,2,opt,name=perm" json:"perm,omitempty"`
+}
+
+func (m *AuthRoleGrantPermissionRequest) Reset()                    { *m = AuthRoleGrantPermissionRequest{} }
+func (m *AuthRoleGrantPermissionRequest) String() string            { return proto.CompactTextString(m) }
+func (*AuthRoleGrantPermissionRequest) ProtoMessage()               {}
+func (*AuthRoleGrantPermissionRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{33} }
+
+func (m *AuthRoleGrantPermissionRequest) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+func (m *AuthRoleGrantPermissionRequest) GetPerm() *Permission {
+	if m != nil {
+		return m.Perm
+	}
+	return nil
+}
+
+type AuthRoleRevokePermissionRequest struct {
+	Role     string `protobuf:"bytes,1,opt,name=role" json:"role,omitempty"`
+	Key      string `protobuf:"bytes,2,opt,name=key" json:"key,omitempty"`
+	RangeEnd string `protobuf:"bytes,3,opt,name=range_end,json=rangeEnd" json:"range_end,omitempty"`
+}
+
+func (m *AuthRoleRevokePermissionRequest) Reset()         { *m = AuthRoleRevokePermissionRequest{} }
+func (m *AuthRoleRevokePermissionRequest) String() string { return proto.CompactTextString(m) }
+func (*AuthRoleRevokePermissionRequest) ProtoMessage()    {}
+func (*AuthRoleRevokePermissionRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor0, []int{34}
+}
+
+func (m *AuthRoleRevokePermissionRequest) GetRole() string {
+	if m != nil {
+		return m.Role
+	}
+	return ""
+}
+
+func (m *AuthRoleRevokePermissionRequest) GetKey() string {
+	if m != nil {
+		return m.Key
+	}
+	return ""
+}
+
+func (m *AuthRoleRevokePermissionRequest) GetRangeEnd() string {
+	if m != nil {
+		return m.RangeEnd
+	}
+	return ""
+}
+
+type AuthEnableResponse struct {
+	Header *ResponseHeader `protobuf:"bytes,1,opt,name=header" json:"header,omitempty"`
+}
+
+func (m *AuthEnableResponse) Reset()                    { *m = AuthEnableResponse{} }
+func (m *AuthEnableResponse) String() string            { return proto.CompactTextString(m) }
+func (*AuthEnableResponse) ProtoMessage()               {}
+func (*AuthEnableResponse) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{35} }
+
+func (m *AuthEnableResponse) GetHeader() *ResponseHeader {
+	if m != nil {
+		return m.Header
+	}
+	return nil
+}
+
+type AuthDisableResponse struct {
+	Header *ResponseHeader `protobuf:"bytes,1,opt,name=header" json:"header,omitempty"`
+}
+
+func (m *AuthDisableResponse) Reset()                    { *m = AuthDisableResponse{} }
+func (m *AuthDisableResponse) String() string            { return proto.CompactTextString(m) }
+func (*AuthDisableResponse) ProtoMessage()               {}
+func (*AuthDisableResponse) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{36} }
+
+func (m *AuthDisableResponse) GetHeader() *ResponseHeader {
+	if m != nil {
+		return m.Header
+	}
+	return nil
+}
+
+type AuthenticateResponse struct {
+	Header *ResponseHeader `protobuf:"bytes,1,opt,name=header" json:"header,omitempty"`
+	// token is an authorized token that can be used in succeeding RPCs
+	Token string `protobuf:"bytes,2,opt,name=token" json:"token,omitempty"`
+}
+
+func (m *AuthenticateResponse) Reset()                    { *m = AuthenticateResponse{} }
+func (m *AuthenticateResponse) String() string            { return proto.CompactTextString(m) }
+func (*AuthenticateResponse) ProtoMessage()               {}
+func (*AuthenticateResponse) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{37} }
+
+func (m *AuthenticateResponse) GetHeader() *ResponseHeader {
+	if m != nil {
+		return m.Header
+	}
+	return nil
+}
+
+func (m *AuthenticateResponse) GetToken() string {
+	if m != nil {
+		return m.Token
+	}
+	return ""
+}
+
+type AuthUserAddResponse struct {
+	Header *ResponseHeader `protobuf:"bytes,1,opt,name=header" json:"header,omitempty"`
+}
+
+func (m *AuthUserAddResponse) Reset()                    { *m = AuthUserAddResponse{} }
+func (m *AuthUserAddResponse) String() string            { return proto.CompactTextString(m) }
+func (*AuthUserAddResponse) ProtoMessage()               {}
+func (*AuthUserAddResponse) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{38} }
+
+func (m *AuthUserAddResponse) GetHeader() *ResponseHeader {
+	if m != nil {
+		return m.Header
+	}
+	return nil
+}
+
+type AuthUserGetResponse struct {
+	Header *ResponseHeader `protobuf:"bytes,1,opt,name=header" json:"header,omitempty"`
+	Roles  []string        `protobuf:"bytes,2,rep,name=roles" json:"roles,omitempty"`
+}
+
+func (m *AuthUserGetResponse) Reset()                    { *m = AuthUserGetResponse{} }
+func (m *AuthUserGetResponse) String() string            { return proto.CompactTextString(m) }
+func (*AuthUserGetResponse) ProtoMessage()               {}
+func (*AuthUserGetResponse) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{39} }
+
+func (m *AuthUserGetResponse) GetHeader() *ResponseHeader {
+	if m != nil {
+		return m.Header
+	}
+	return nil
+}
+
+func (m *AuthUserGetResponse) GetRoles() []string {
+	if m != nil {
+		return m.Roles
+	}
+	return nil
+}
+
+type AuthUserDeleteResponse struct {
+	Header *ResponseHeader `protobuf:"bytes,1,opt,name=header" json:"header,omitempty"`
+}
+
+func (m *AuthUserDeleteResponse) Reset()                    { *m = AuthUserDeleteResponse{} }
+func (m *AuthUserDeleteResponse) String() string            { return proto.CompactTextString(m) }
+func (*AuthUserDeleteResponse) ProtoMessage()               {}
+func (*AuthUserDeleteResponse) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{40} }
+
+func (m *AuthUserDeleteResponse) GetHeader() *ResponseHeader {
+	if m != nil {
+		return m.Header
+	}
+	return nil
+}
+
+type AuthUserChangePasswordResponse struct {
+	Header *ResponseHeader `protobuf:"bytes,1,opt,name=header" json:"header,omitempty"`
+}
+
+func (m *AuthUserChangePasswordResponse) Reset()                    { *m = AuthUserChangePasswordResponse{} }
+func (m *AuthUserChangePasswordResponse) String() string            { return proto.CompactTextString(m) }
+func (*AuthUserChangePasswordResponse) ProtoMessage()               {}
+func (*AuthUserChangePasswordResponse) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{41} }
+
+func (m *AuthUserChangePasswordResponse) GetHeader() *ResponseHeader {
+	if m != nil {
+		return m.Header
+	}
+	return nil
+}
+
+type AuthUserGrantRoleResponse struct {
+	Header *ResponseHeader `protobuf:"bytes,1,opt,name=header" json:"header,omitempty"`
+}
+
+func (m *AuthUserGrantRoleResponse) Reset()                    { *m = AuthUserGrantRoleResponse{} }
+func (m *AuthUserGrantRoleResponse) String() string            { return proto.CompactTextString(m) }
+func (*AuthUserGrantRoleResponse) ProtoMessage()               {}
+func (*AuthUserGrantRoleResponse) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{42} }
+
+func (m *AuthUserGrantRoleResponse) GetHeader() *ResponseHeader {
+	if m != nil {
+		return m.Header
+	}
+	return nil
+}
+
+type AuthUserRevokeRoleResponse struct {
+	Header *ResponseHeader `protobuf:"bytes,1,opt,name=header" json:"header,omitempty"`
+}
+
+func (m *AuthUserRevokeRoleResponse) Reset()                    { *m = AuthUserRevokeRoleResponse{} }
+func (m *AuthUserRevokeRoleResponse) String() string            { return proto.CompactTextString(m) }
+func (*AuthUserRevokeRoleResponse) ProtoMessage()               {}
+func (*AuthUserRevokeRoleResponse) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{43} }
+
+func (m *AuthUserRevokeRoleResponse) GetHeader() *ResponseHeader {
+	if m != nil {
+		return m.Header
+	}
+	return nil
+}
+
+type AuthRoleAddResponse struct {
+	Header *ResponseHeader `protobuf:"bytes,1,opt,name=header" json:"header,omitempty"`
+}
+
+func (m *AuthRoleAddResponse) Reset()                    { *m = AuthRoleAddResponse{} }
+func (m *AuthRoleAddResponse) String() string            { return proto.CompactTextString(m) }
+func (*AuthRoleAddResponse) ProtoMessage()               {}
+func (*AuthRoleAddResponse) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{44} }
+
+func (m *AuthRoleAddResponse) GetHeader() *ResponseHeader {
+	if m != nil {
+		return m.Header
+	}
+	return nil
+}
+
+type AuthRoleGetResponse struct {
+	Header *ResponseHeader `protobuf:"bytes,1,opt,name=header" json:"header,omitempty"`
+	Perm   []*Permission   `protobuf:"bytes,2,rep,name=perm" json:"perm,omitempty"`
+}
+
+func (m *AuthRoleGetResponse) Reset()                    { *m = AuthRoleGetResponse{} }
+func (m *AuthRoleGetResponse) String() string            { return proto.CompactTextString(m) }
+func (*AuthRoleGetResponse) ProtoMessage()               {}
+func (*AuthRoleGetResponse) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{45} }
+
+func (m *AuthRoleGetResponse) GetHeader() *ResponseHeader {
+	if m != nil {
+		return m.Header
+	}
+	return nil
+}
+
+func (m *AuthRoleGetResponse) GetPerm() []*Permission {
+	if m != nil {
+		return m.Perm
+	}
+	return nil
+}
+
+type AuthRoleListResponse struct {
+	Header *ResponseHeader `protobuf:"bytes,1,opt,name=header" json:"header,omitempty"`
+	Roles  []string        `protobuf:"bytes,2,rep,name=roles" json:"roles,omitempty"`
+}
+
+func (m *AuthRoleListResponse) Reset()                    { *m = AuthRoleListResponse{} }
+func (m *AuthRoleListResponse) String() string            { return proto.CompactTextString(m) }
+func (*AuthRoleListResponse) ProtoMessage()               {}
+func (*AuthRoleListResponse) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{46} }
+
+func (m *AuthRoleListResponse) GetHeader() *ResponseHeader {
+	if m != nil {
+		return m.Header
+	}
+	return nil
+}
+
+func (m *AuthRoleListResponse) GetRoles() []string {
+	if m != nil {
+		return m.Roles
+	}
+	return nil
+}
+
+type AuthUserListResponse struct {
+	Header *ResponseHeader `protobuf:"bytes,1,opt,name=header" json:"header,omitempty"`
+	Users  []string        `protobuf:"bytes,2,rep,name=users" json:"users,omitempty"`
+}
+
+func (m *AuthUserListResponse) Reset()                    { *m = AuthUserListResponse{} }
+func (m *AuthUserListResponse) String() string            { return proto.CompactTextString(m) }
+func (*AuthUserListResponse) ProtoMessage()               {}
+func (*AuthUserListResponse) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{47} }
+
+func (m *AuthUserListResponse) GetHeader() *ResponseHeader {
+	if m != nil {
+		return m.Header
+	}
+	return nil
+}
+
+func (m *AuthUserListResponse) GetUsers() []string {
+	if m != nil {
+		return m.Users
+	}
+	return nil
+}
+
+type AuthRoleDeleteResponse struct {
+	Header *ResponseHeader `protobuf:"bytes,1,opt,name=header" json:"header,omitempty"`
+}
+
+func (m *AuthRoleDeleteResponse) Reset()                    { *m = AuthRoleDeleteResponse{} }
+func (m *AuthRoleDeleteResponse) String() string            { return proto.CompactTextString(m) }
+func (*AuthRoleDeleteResponse) ProtoMessage()               {}
+func (*AuthRoleDeleteResponse) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{48} }
+
+func (m *AuthRoleDeleteResponse) GetHeader() *ResponseHeader {
+	if m != nil {
+		return m.Header
+	}
+	return nil
+}
+
+type AuthRoleGrantPermissionResponse struct {
+	Header *ResponseHeader `protobuf:"bytes,1,opt,name=header" json:"header,omitempty"`
+}
+
+func (m *AuthRoleGrantPermissionResponse) Reset()         { *m = AuthRoleGrantPermissionResponse{} }
+func (m *AuthRoleGrantPermissionResponse) String() string { return proto.CompactTextString(m) }
+func (*AuthRoleGrantPermissionResponse) ProtoMessage()    {}
+func (*AuthRoleGrantPermissionResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor0, []int{49}
+}
+
+func (m *AuthRoleGrantPermissionResponse) GetHeader() *ResponseHeader {
+	if m != nil {
+		return m.Header
+	}
+	return nil
+}
+
+type AuthRoleRevokePermissionResponse struct {
+	Header *ResponseHeader `protobuf:"bytes,1,opt,name=header" json:"header,omitempty"`
+}
+
+func (m *AuthRoleRevokePermissionResponse) Reset()         { *m = AuthRoleRevokePermissionResponse{} }
+func (m *AuthRoleRevokePermissionResponse) String() string { return proto.CompactTextString(m) }
+func (*AuthRoleRevokePermissionResponse) ProtoMessage()    {}
+func (*AuthRoleRevokePermissionResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor0, []int{50}
+}
+
+func (m *AuthRoleRevokePermissionResponse) GetHeader() *ResponseHeader {
+	if m != nil {
+		return m.Header
+	}
+	return nil
+}
+
 func init() {
 	proto.RegisterType((*Null)(nil), "mydis.Null")
 	proto.RegisterType((*Key)(nil), "mydis.Key")
@@ -577,7 +1312,42 @@ func init() {
 	proto.RegisterType((*HashFieldSet)(nil), "mydis.HashFieldSet")
 	proto.RegisterType((*WatchRequest)(nil), "mydis.WatchRequest")
 	proto.RegisterType((*Event)(nil), "mydis.Event")
+	proto.RegisterType((*Permission)(nil), "mydis.Permission")
+	proto.RegisterType((*ResponseHeader)(nil), "mydis.ResponseHeader")
+	proto.RegisterType((*AuthEnableRequest)(nil), "mydis.AuthEnableRequest")
+	proto.RegisterType((*AuthDisableRequest)(nil), "mydis.AuthDisableRequest")
+	proto.RegisterType((*AuthenticateRequest)(nil), "mydis.AuthenticateRequest")
+	proto.RegisterType((*AuthUserAddRequest)(nil), "mydis.AuthUserAddRequest")
+	proto.RegisterType((*AuthUserGetRequest)(nil), "mydis.AuthUserGetRequest")
+	proto.RegisterType((*AuthUserDeleteRequest)(nil), "mydis.AuthUserDeleteRequest")
+	proto.RegisterType((*AuthUserChangePasswordRequest)(nil), "mydis.AuthUserChangePasswordRequest")
+	proto.RegisterType((*AuthUserGrantRoleRequest)(nil), "mydis.AuthUserGrantRoleRequest")
+	proto.RegisterType((*AuthUserRevokeRoleRequest)(nil), "mydis.AuthUserRevokeRoleRequest")
+	proto.RegisterType((*AuthRoleAddRequest)(nil), "mydis.AuthRoleAddRequest")
+	proto.RegisterType((*AuthRoleGetRequest)(nil), "mydis.AuthRoleGetRequest")
+	proto.RegisterType((*AuthUserListRequest)(nil), "mydis.AuthUserListRequest")
+	proto.RegisterType((*AuthRoleListRequest)(nil), "mydis.AuthRoleListRequest")
+	proto.RegisterType((*AuthRoleDeleteRequest)(nil), "mydis.AuthRoleDeleteRequest")
+	proto.RegisterType((*AuthRoleGrantPermissionRequest)(nil), "mydis.AuthRoleGrantPermissionRequest")
+	proto.RegisterType((*AuthRoleRevokePermissionRequest)(nil), "mydis.AuthRoleRevokePermissionRequest")
+	proto.RegisterType((*AuthEnableResponse)(nil), "mydis.AuthEnableResponse")
+	proto.RegisterType((*AuthDisableResponse)(nil), "mydis.AuthDisableResponse")
+	proto.RegisterType((*AuthenticateResponse)(nil), "mydis.AuthenticateResponse")
+	proto.RegisterType((*AuthUserAddResponse)(nil), "mydis.AuthUserAddResponse")
+	proto.RegisterType((*AuthUserGetResponse)(nil), "mydis.AuthUserGetResponse")
+	proto.RegisterType((*AuthUserDeleteResponse)(nil), "mydis.AuthUserDeleteResponse")
+	proto.RegisterType((*AuthUserChangePasswordResponse)(nil), "mydis.AuthUserChangePasswordResponse")
+	proto.RegisterType((*AuthUserGrantRoleResponse)(nil), "mydis.AuthUserGrantRoleResponse")
+	proto.RegisterType((*AuthUserRevokeRoleResponse)(nil), "mydis.AuthUserRevokeRoleResponse")
+	proto.RegisterType((*AuthRoleAddResponse)(nil), "mydis.AuthRoleAddResponse")
+	proto.RegisterType((*AuthRoleGetResponse)(nil), "mydis.AuthRoleGetResponse")
+	proto.RegisterType((*AuthRoleListResponse)(nil), "mydis.AuthRoleListResponse")
+	proto.RegisterType((*AuthUserListResponse)(nil), "mydis.AuthUserListResponse")
+	proto.RegisterType((*AuthRoleDeleteResponse)(nil), "mydis.AuthRoleDeleteResponse")
+	proto.RegisterType((*AuthRoleGrantPermissionResponse)(nil), "mydis.AuthRoleGrantPermissionResponse")
+	proto.RegisterType((*AuthRoleRevokePermissionResponse)(nil), "mydis.AuthRoleRevokePermissionResponse")
 	proto.RegisterEnum("mydis.Event_EventType", Event_EventType_name, Event_EventType_value)
+	proto.RegisterEnum("mydis.Permission_Type", Permission_Type_name, Permission_Type_value)
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -671,7 +1441,7 @@ type MydisClient interface {
 	ListHas(ctx context.Context, in *ListItem, opts ...grpc.CallOption) (*IntValue, error)
 	// ListDelete removes an item from a list by index.
 	ListDelete(ctx context.Context, in *ListItem, opts ...grpc.CallOption) (*Null, error)
-	// ListDeleteItem removes the first occurence of value from a list, returns index of removed item or -1 for not found.
+	// ListDeleteItem removes the first occurrence of value from a list, returns index of removed item or -1 for not found.
 	ListDeleteItem(ctx context.Context, in *ListItem, opts ...grpc.CallOption) (*IntValue, error)
 	// -- hash functions
 	// GetHash gets a hash from the cache.
@@ -699,6 +1469,39 @@ type MydisClient interface {
 	// -- push functions
 	// Watch for changes to a key.
 	Watch(ctx context.Context, opts ...grpc.CallOption) (Mydis_WatchClient, error)
+	// -- auth passthrough functions
+	// AuthEnable enables authentication.
+	AuthEnable(ctx context.Context, in *AuthEnableRequest, opts ...grpc.CallOption) (*AuthEnableResponse, error)
+	// AuthDisable disables authentication.
+	AuthDisable(ctx context.Context, in *AuthDisableRequest, opts ...grpc.CallOption) (*AuthDisableResponse, error)
+	// Authenticate processes an authenticate request.
+	Authenticate(ctx context.Context, in *AuthenticateRequest, opts ...grpc.CallOption) (*AuthenticateResponse, error)
+	// UserAdd adds a new user.
+	UserAdd(ctx context.Context, in *AuthUserAddRequest, opts ...grpc.CallOption) (*AuthUserAddResponse, error)
+	// UserGet gets detailed user information.
+	UserGet(ctx context.Context, in *AuthUserGetRequest, opts ...grpc.CallOption) (*AuthUserGetResponse, error)
+	// UserList gets a list of all users.
+	UserList(ctx context.Context, in *AuthUserListRequest, opts ...grpc.CallOption) (*AuthUserListResponse, error)
+	// UserDelete deletes a specified user.
+	UserDelete(ctx context.Context, in *AuthUserDeleteRequest, opts ...grpc.CallOption) (*AuthUserDeleteResponse, error)
+	// UserChangePassword changes the password of a specified user.
+	UserChangePassword(ctx context.Context, in *AuthUserChangePasswordRequest, opts ...grpc.CallOption) (*AuthUserChangePasswordResponse, error)
+	// UserGrantRole grants a role to a specified user.
+	UserGrantRole(ctx context.Context, in *AuthUserGrantRoleRequest, opts ...grpc.CallOption) (*AuthUserGrantRoleResponse, error)
+	// UserRevokeRole revokes a role of specified user.
+	UserRevokeRole(ctx context.Context, in *AuthUserRevokeRoleRequest, opts ...grpc.CallOption) (*AuthUserRevokeRoleResponse, error)
+	// RoleAdd adds a new role.
+	RoleAdd(ctx context.Context, in *AuthRoleAddRequest, opts ...grpc.CallOption) (*AuthRoleAddResponse, error)
+	// RoleGet gets detailed role information.
+	RoleGet(ctx context.Context, in *AuthRoleGetRequest, opts ...grpc.CallOption) (*AuthRoleGetResponse, error)
+	// RoleList gets lists of all roles.
+	RoleList(ctx context.Context, in *AuthRoleListRequest, opts ...grpc.CallOption) (*AuthRoleListResponse, error)
+	// RoleDelete deletes a specified role.
+	RoleDelete(ctx context.Context, in *AuthRoleDeleteRequest, opts ...grpc.CallOption) (*AuthRoleDeleteResponse, error)
+	// RoleGrantPermission grants a permission of a specified key or range to a specified role.
+	RoleGrantPermission(ctx context.Context, in *AuthRoleGrantPermissionRequest, opts ...grpc.CallOption) (*AuthRoleGrantPermissionResponse, error)
+	// RoleRevokePermission revokes a key or range permission of a specified role.
+	RoleRevokePermission(ctx context.Context, in *AuthRoleRevokePermissionRequest, opts ...grpc.CallOption) (*AuthRoleRevokePermissionResponse, error)
 }
 
 type mydisClient struct {
@@ -1190,6 +1993,150 @@ func (x *mydisWatchClient) Recv() (*Event, error) {
 	return m, nil
 }
 
+func (c *mydisClient) AuthEnable(ctx context.Context, in *AuthEnableRequest, opts ...grpc.CallOption) (*AuthEnableResponse, error) {
+	out := new(AuthEnableResponse)
+	err := grpc.Invoke(ctx, "/mydis.Mydis/AuthEnable", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *mydisClient) AuthDisable(ctx context.Context, in *AuthDisableRequest, opts ...grpc.CallOption) (*AuthDisableResponse, error) {
+	out := new(AuthDisableResponse)
+	err := grpc.Invoke(ctx, "/mydis.Mydis/AuthDisable", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *mydisClient) Authenticate(ctx context.Context, in *AuthenticateRequest, opts ...grpc.CallOption) (*AuthenticateResponse, error) {
+	out := new(AuthenticateResponse)
+	err := grpc.Invoke(ctx, "/mydis.Mydis/Authenticate", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *mydisClient) UserAdd(ctx context.Context, in *AuthUserAddRequest, opts ...grpc.CallOption) (*AuthUserAddResponse, error) {
+	out := new(AuthUserAddResponse)
+	err := grpc.Invoke(ctx, "/mydis.Mydis/UserAdd", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *mydisClient) UserGet(ctx context.Context, in *AuthUserGetRequest, opts ...grpc.CallOption) (*AuthUserGetResponse, error) {
+	out := new(AuthUserGetResponse)
+	err := grpc.Invoke(ctx, "/mydis.Mydis/UserGet", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *mydisClient) UserList(ctx context.Context, in *AuthUserListRequest, opts ...grpc.CallOption) (*AuthUserListResponse, error) {
+	out := new(AuthUserListResponse)
+	err := grpc.Invoke(ctx, "/mydis.Mydis/UserList", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *mydisClient) UserDelete(ctx context.Context, in *AuthUserDeleteRequest, opts ...grpc.CallOption) (*AuthUserDeleteResponse, error) {
+	out := new(AuthUserDeleteResponse)
+	err := grpc.Invoke(ctx, "/mydis.Mydis/UserDelete", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *mydisClient) UserChangePassword(ctx context.Context, in *AuthUserChangePasswordRequest, opts ...grpc.CallOption) (*AuthUserChangePasswordResponse, error) {
+	out := new(AuthUserChangePasswordResponse)
+	err := grpc.Invoke(ctx, "/mydis.Mydis/UserChangePassword", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *mydisClient) UserGrantRole(ctx context.Context, in *AuthUserGrantRoleRequest, opts ...grpc.CallOption) (*AuthUserGrantRoleResponse, error) {
+	out := new(AuthUserGrantRoleResponse)
+	err := grpc.Invoke(ctx, "/mydis.Mydis/UserGrantRole", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *mydisClient) UserRevokeRole(ctx context.Context, in *AuthUserRevokeRoleRequest, opts ...grpc.CallOption) (*AuthUserRevokeRoleResponse, error) {
+	out := new(AuthUserRevokeRoleResponse)
+	err := grpc.Invoke(ctx, "/mydis.Mydis/UserRevokeRole", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *mydisClient) RoleAdd(ctx context.Context, in *AuthRoleAddRequest, opts ...grpc.CallOption) (*AuthRoleAddResponse, error) {
+	out := new(AuthRoleAddResponse)
+	err := grpc.Invoke(ctx, "/mydis.Mydis/RoleAdd", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *mydisClient) RoleGet(ctx context.Context, in *AuthRoleGetRequest, opts ...grpc.CallOption) (*AuthRoleGetResponse, error) {
+	out := new(AuthRoleGetResponse)
+	err := grpc.Invoke(ctx, "/mydis.Mydis/RoleGet", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *mydisClient) RoleList(ctx context.Context, in *AuthRoleListRequest, opts ...grpc.CallOption) (*AuthRoleListResponse, error) {
+	out := new(AuthRoleListResponse)
+	err := grpc.Invoke(ctx, "/mydis.Mydis/RoleList", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *mydisClient) RoleDelete(ctx context.Context, in *AuthRoleDeleteRequest, opts ...grpc.CallOption) (*AuthRoleDeleteResponse, error) {
+	out := new(AuthRoleDeleteResponse)
+	err := grpc.Invoke(ctx, "/mydis.Mydis/RoleDelete", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *mydisClient) RoleGrantPermission(ctx context.Context, in *AuthRoleGrantPermissionRequest, opts ...grpc.CallOption) (*AuthRoleGrantPermissionResponse, error) {
+	out := new(AuthRoleGrantPermissionResponse)
+	err := grpc.Invoke(ctx, "/mydis.Mydis/RoleGrantPermission", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *mydisClient) RoleRevokePermission(ctx context.Context, in *AuthRoleRevokePermissionRequest, opts ...grpc.CallOption) (*AuthRoleRevokePermissionResponse, error) {
+	out := new(AuthRoleRevokePermissionResponse)
+	err := grpc.Invoke(ctx, "/mydis.Mydis/RoleRevokePermission", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // Server API for Mydis service
 
 type MydisServer interface {
@@ -1273,7 +2220,7 @@ type MydisServer interface {
 	ListHas(context.Context, *ListItem) (*IntValue, error)
 	// ListDelete removes an item from a list by index.
 	ListDelete(context.Context, *ListItem) (*Null, error)
-	// ListDeleteItem removes the first occurence of value from a list, returns index of removed item or -1 for not found.
+	// ListDeleteItem removes the first occurrence of value from a list, returns index of removed item or -1 for not found.
 	ListDeleteItem(context.Context, *ListItem) (*IntValue, error)
 	// -- hash functions
 	// GetHash gets a hash from the cache.
@@ -1301,6 +2248,39 @@ type MydisServer interface {
 	// -- push functions
 	// Watch for changes to a key.
 	Watch(Mydis_WatchServer) error
+	// -- auth passthrough functions
+	// AuthEnable enables authentication.
+	AuthEnable(context.Context, *AuthEnableRequest) (*AuthEnableResponse, error)
+	// AuthDisable disables authentication.
+	AuthDisable(context.Context, *AuthDisableRequest) (*AuthDisableResponse, error)
+	// Authenticate processes an authenticate request.
+	Authenticate(context.Context, *AuthenticateRequest) (*AuthenticateResponse, error)
+	// UserAdd adds a new user.
+	UserAdd(context.Context, *AuthUserAddRequest) (*AuthUserAddResponse, error)
+	// UserGet gets detailed user information.
+	UserGet(context.Context, *AuthUserGetRequest) (*AuthUserGetResponse, error)
+	// UserList gets a list of all users.
+	UserList(context.Context, *AuthUserListRequest) (*AuthUserListResponse, error)
+	// UserDelete deletes a specified user.
+	UserDelete(context.Context, *AuthUserDeleteRequest) (*AuthUserDeleteResponse, error)
+	// UserChangePassword changes the password of a specified user.
+	UserChangePassword(context.Context, *AuthUserChangePasswordRequest) (*AuthUserChangePasswordResponse, error)
+	// UserGrantRole grants a role to a specified user.
+	UserGrantRole(context.Context, *AuthUserGrantRoleRequest) (*AuthUserGrantRoleResponse, error)
+	// UserRevokeRole revokes a role of specified user.
+	UserRevokeRole(context.Context, *AuthUserRevokeRoleRequest) (*AuthUserRevokeRoleResponse, error)
+	// RoleAdd adds a new role.
+	RoleAdd(context.Context, *AuthRoleAddRequest) (*AuthRoleAddResponse, error)
+	// RoleGet gets detailed role information.
+	RoleGet(context.Context, *AuthRoleGetRequest) (*AuthRoleGetResponse, error)
+	// RoleList gets lists of all roles.
+	RoleList(context.Context, *AuthRoleListRequest) (*AuthRoleListResponse, error)
+	// RoleDelete deletes a specified role.
+	RoleDelete(context.Context, *AuthRoleDeleteRequest) (*AuthRoleDeleteResponse, error)
+	// RoleGrantPermission grants a permission of a specified key or range to a specified role.
+	RoleGrantPermission(context.Context, *AuthRoleGrantPermissionRequest) (*AuthRoleGrantPermissionResponse, error)
+	// RoleRevokePermission revokes a key or range permission of a specified role.
+	RoleRevokePermission(context.Context, *AuthRoleRevokePermissionRequest) (*AuthRoleRevokePermissionResponse, error)
 }
 
 func RegisterMydisServer(s *grpc.Server, srv MydisServer) {
@@ -2233,6 +3213,294 @@ func (x *mydisWatchServer) Recv() (*WatchRequest, error) {
 	return m, nil
 }
 
+func _Mydis_AuthEnable_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AuthEnableRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MydisServer).AuthEnable(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/mydis.Mydis/AuthEnable",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MydisServer).AuthEnable(ctx, req.(*AuthEnableRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Mydis_AuthDisable_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AuthDisableRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MydisServer).AuthDisable(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/mydis.Mydis/AuthDisable",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MydisServer).AuthDisable(ctx, req.(*AuthDisableRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Mydis_Authenticate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AuthenticateRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MydisServer).Authenticate(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/mydis.Mydis/Authenticate",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MydisServer).Authenticate(ctx, req.(*AuthenticateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Mydis_UserAdd_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AuthUserAddRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MydisServer).UserAdd(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/mydis.Mydis/UserAdd",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MydisServer).UserAdd(ctx, req.(*AuthUserAddRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Mydis_UserGet_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AuthUserGetRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MydisServer).UserGet(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/mydis.Mydis/UserGet",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MydisServer).UserGet(ctx, req.(*AuthUserGetRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Mydis_UserList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AuthUserListRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MydisServer).UserList(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/mydis.Mydis/UserList",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MydisServer).UserList(ctx, req.(*AuthUserListRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Mydis_UserDelete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AuthUserDeleteRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MydisServer).UserDelete(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/mydis.Mydis/UserDelete",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MydisServer).UserDelete(ctx, req.(*AuthUserDeleteRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Mydis_UserChangePassword_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AuthUserChangePasswordRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MydisServer).UserChangePassword(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/mydis.Mydis/UserChangePassword",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MydisServer).UserChangePassword(ctx, req.(*AuthUserChangePasswordRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Mydis_UserGrantRole_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AuthUserGrantRoleRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MydisServer).UserGrantRole(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/mydis.Mydis/UserGrantRole",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MydisServer).UserGrantRole(ctx, req.(*AuthUserGrantRoleRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Mydis_UserRevokeRole_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AuthUserRevokeRoleRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MydisServer).UserRevokeRole(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/mydis.Mydis/UserRevokeRole",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MydisServer).UserRevokeRole(ctx, req.(*AuthUserRevokeRoleRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Mydis_RoleAdd_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AuthRoleAddRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MydisServer).RoleAdd(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/mydis.Mydis/RoleAdd",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MydisServer).RoleAdd(ctx, req.(*AuthRoleAddRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Mydis_RoleGet_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AuthRoleGetRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MydisServer).RoleGet(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/mydis.Mydis/RoleGet",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MydisServer).RoleGet(ctx, req.(*AuthRoleGetRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Mydis_RoleList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AuthRoleListRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MydisServer).RoleList(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/mydis.Mydis/RoleList",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MydisServer).RoleList(ctx, req.(*AuthRoleListRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Mydis_RoleDelete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AuthRoleDeleteRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MydisServer).RoleDelete(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/mydis.Mydis/RoleDelete",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MydisServer).RoleDelete(ctx, req.(*AuthRoleDeleteRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Mydis_RoleGrantPermission_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AuthRoleGrantPermissionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MydisServer).RoleGrantPermission(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/mydis.Mydis/RoleGrantPermission",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MydisServer).RoleGrantPermission(ctx, req.(*AuthRoleGrantPermissionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Mydis_RoleRevokePermission_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AuthRoleRevokePermissionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MydisServer).RoleRevokePermission(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/mydis.Mydis/RoleRevokePermission",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MydisServer).RoleRevokePermission(ctx, req.(*AuthRoleRevokePermissionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _Mydis_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "mydis.Mydis",
 	HandlerType: (*MydisServer)(nil),
@@ -2437,6 +3705,70 @@ var _Mydis_serviceDesc = grpc.ServiceDesc{
 			MethodName: "DelHashField",
 			Handler:    _Mydis_DelHashField_Handler,
 		},
+		{
+			MethodName: "AuthEnable",
+			Handler:    _Mydis_AuthEnable_Handler,
+		},
+		{
+			MethodName: "AuthDisable",
+			Handler:    _Mydis_AuthDisable_Handler,
+		},
+		{
+			MethodName: "Authenticate",
+			Handler:    _Mydis_Authenticate_Handler,
+		},
+		{
+			MethodName: "UserAdd",
+			Handler:    _Mydis_UserAdd_Handler,
+		},
+		{
+			MethodName: "UserGet",
+			Handler:    _Mydis_UserGet_Handler,
+		},
+		{
+			MethodName: "UserList",
+			Handler:    _Mydis_UserList_Handler,
+		},
+		{
+			MethodName: "UserDelete",
+			Handler:    _Mydis_UserDelete_Handler,
+		},
+		{
+			MethodName: "UserChangePassword",
+			Handler:    _Mydis_UserChangePassword_Handler,
+		},
+		{
+			MethodName: "UserGrantRole",
+			Handler:    _Mydis_UserGrantRole_Handler,
+		},
+		{
+			MethodName: "UserRevokeRole",
+			Handler:    _Mydis_UserRevokeRole_Handler,
+		},
+		{
+			MethodName: "RoleAdd",
+			Handler:    _Mydis_RoleAdd_Handler,
+		},
+		{
+			MethodName: "RoleGet",
+			Handler:    _Mydis_RoleGet_Handler,
+		},
+		{
+			MethodName: "RoleList",
+			Handler:    _Mydis_RoleList_Handler,
+		},
+		{
+			MethodName: "RoleDelete",
+			Handler:    _Mydis_RoleDelete_Handler,
+		},
+		{
+			MethodName: "RoleGrantPermission",
+			Handler:    _Mydis_RoleGrantPermission_Handler,
+		},
+		{
+			MethodName: "RoleRevokePermission",
+			Handler:    _Mydis_RoleRevokePermission_Handler,
+		},
 	},
 	Streams: []grpc.StreamDesc{
 		{
@@ -2452,76 +3784,127 @@ var _Mydis_serviceDesc = grpc.ServiceDesc{
 func init() { proto.RegisterFile("mydis.proto", fileDescriptor0) }
 
 var fileDescriptor0 = []byte{
-	// 1135 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x09, 0x6e, 0x88, 0x02, 0xff, 0xac, 0x57, 0x4b, 0x6f, 0xdb, 0x46,
-	0x10, 0x16, 0x4d, 0x3d, 0x47, 0xb2, 0x6c, 0x6f, 0x8b, 0x40, 0x10, 0x82, 0x42, 0x65, 0x1a, 0x47,
-	0xf5, 0x2b, 0x86, 0xec, 0x83, 0xdb, 0x5b, 0x13, 0x2b, 0xb6, 0x10, 0x39, 0x30, 0x48, 0xa7, 0xe9,
-	0x95, 0x95, 0xc6, 0x16, 0x61, 0x8a, 0x54, 0xc9, 0x95, 0x61, 0x01, 0x3d, 0xf4, 0x5c, 0xf4, 0xbf,
-	0xf4, 0xd7, 0xf5, 0x5e, 0xec, 0x83, 0x14, 0x45, 0xad, 0x45, 0x19, 0xc8, 0x45, 0xe0, 0xec, 0x7e,
-	0xf3, 0xcd, 0xb7, 0xb3, 0xb3, 0xb3, 0x2b, 0xa8, 0x8e, 0x67, 0x43, 0x27, 0x3c, 0x9a, 0x04, 0x3e,
-	0xf5, 0x49, 0x81, 0x1b, 0x46, 0x11, 0xf2, 0x9f, 0xa6, 0xae, 0x6b, 0xfc, 0xa7, 0x81, 0xfe, 0x11,
-	0x67, 0x64, 0x1b, 0xf4, 0x7b, 0x9c, 0x35, 0xb4, 0x96, 0xd6, 0xae, 0x98, 0xec, 0x93, 0x7c, 0x0b,
-	0x05, 0xd7, 0x19, 0x3b, 0xb4, 0xa1, 0xb7, 0xb4, 0xb6, 0x6e, 0x0a, 0x83, 0x34, 0xa1, 0x1c, 0xe0,
-	0x83, 0x13, 0x3a, 0xbe, 0xd7, 0xc8, 0xf3, 0x89, 0xd8, 0x26, 0xbb, 0x50, 0x1f, 0x3b, 0xde, 0x95,
-	0x3f, 0x34, 0x23, 0x04, 0x70, 0x44, 0x6a, 0x94, 0xe3, 0xec, 0xc7, 0x24, 0xae, 0x2a, 0x71, 0x0b,
-	0xa3, 0xe4, 0x00, 0x76, 0xc6, 0x8e, 0xf7, 0x3e, 0x40, 0x9b, 0x62, 0x0c, 0xad, 0x71, 0xe8, 0xf2,
-	0x04, 0x47, 0xdb, 0x8f, 0x29, 0xf4, 0xa6, 0x44, 0xa7, 0x27, 0x8c, 0x97, 0x90, 0x7f, 0xe7, 0xfb,
-	0x2e, 0x5b, 0xe5, 0x83, 0xed, 0x4e, 0x91, 0xaf, 0xbc, 0x6c, 0x0a, 0xc3, 0x38, 0x06, 0xe8, 0x3e,
-	0x4e, 0x9c, 0xc0, 0xa6, 0x8c, 0x79, 0x39, 0x37, 0xdb, 0xa0, 0xe3, 0xe3, 0xa4, 0xb1, 0xd1, 0xd2,
-	0xda, 0xc4, 0x64, 0x9f, 0xc6, 0x09, 0x54, 0xde, 0xcd, 0x28, 0xfe, 0xca, 0xdc, 0xd5, 0xc9, 0x14,
-	0x61, 0x98, 0x4b, 0x2d, 0x0a, 0xd3, 0x81, 0x72, 0xcf, 0xa3, 0x6b, 0xf9, 0x90, 0xc8, 0xe7, 0x14,
-	0xe0, 0x83, 0xeb, 0xdb, 0xeb, 0x79, 0x69, 0x91, 0xd7, 0x77, 0x50, 0xfe, 0x88, 0xb3, 0xb0, 0xef,
-	0x84, 0x94, 0x10, 0xc8, 0xdf, 0xe3, 0x2c, 0x6c, 0x68, 0x2d, 0xbd, 0x5d, 0x31, 0xf9, 0xb7, 0x71,
-	0x0e, 0x79, 0x3e, 0xb7, 0x92, 0x4f, 0x8f, 0x95, 0xab, 0x8b, 0xc3, 0xb8, 0x84, 0x32, 0x63, 0xe9,
-	0x51, 0x1c, 0xab, 0x99, 0x1c, 0x6f, 0x88, 0x8f, 0x5c, 0x99, 0x6e, 0x0a, 0x63, 0xce, 0xaf, 0x27,
-	0x33, 0xf3, 0x27, 0x54, 0xba, 0x41, 0xe0, 0x07, 0x97, 0x76, 0x38, 0x22, 0xa7, 0x50, 0x44, 0x66,
-	0x08, 0xc9, 0xd5, 0xce, 0xcb, 0x23, 0x51, 0xd0, 0x31, 0x42, 0x7c, 0x85, 0x5d, 0x8f, 0x06, 0x33,
-	0x53, 0x62, 0x9b, 0x3f, 0x41, 0x35, 0x31, 0x9c, 0x95, 0xa9, 0x8a, 0x8c, 0xfc, 0xf3, 0xc6, 0x99,
-	0x66, 0xfc, 0xa3, 0x01, 0x58, 0x34, 0x70, 0xbc, 0x3b, 0x1e, 0x7f, 0xd9, 0xb5, 0x93, 0x4c, 0xca,
-	0x5c, 0xd0, 0xdc, 0xe7, 0x88, 0x6f, 0x8f, 0x10, 0x24, 0xa0, 0xcd, 0x33, 0x80, 0xf9, 0xe0, 0xb3,
-	0xe4, 0xfc, 0xa5, 0x41, 0xfe, 0x09, 0x21, 0x07, 0x8b, 0x42, 0x5e, 0x48, 0x21, 0x5f, 0x43, 0x42,
-	0x2d, 0x29, 0xa1, 0x07, 0x15, 0xc6, 0xf9, 0xc1, 0x41, 0x77, 0xa8, 0x76, 0xbc, 0x65, 0x53, 0x91,
-	0x76, 0x6e, 0x3c, 0xb1, 0xb5, 0x7d, 0xa8, 0xc5, 0x54, 0x16, 0xd2, 0xd5, 0x6c, 0xba, 0x92, 0x6d,
-	0x5e, 0x88, 0x46, 0x00, 0xb5, 0x2f, 0x36, 0x1d, 0x8c, 0x4c, 0xfc, 0x63, 0x8a, 0xca, 0x02, 0x7e,
-	0x01, 0xc5, 0x49, 0x80, 0xb7, 0x8e, 0xa8, 0xbb, 0xb2, 0x29, 0x2d, 0x86, 0x0c, 0xf0, 0x41, 0x16,
-	0x30, 0xfb, 0x24, 0x75, 0xd8, 0x70, 0x86, 0xb2, 0xab, 0x6d, 0x38, 0x43, 0xe6, 0x39, 0xb0, 0xbd,
-	0x01, 0xba, 0x8d, 0x82, 0xf0, 0x14, 0x96, 0xf1, 0xaf, 0x06, 0x85, 0xee, 0x03, 0x7a, 0x94, 0xec,
-	0x41, 0x9e, 0xce, 0x26, 0xa2, 0x79, 0xd4, 0xe3, 0xec, 0xf3, 0x39, 0xf1, 0x7b, 0x33, 0x9b, 0xa0,
-	0xc9, 0x31, 0x64, 0x0f, 0x4a, 0x83, 0x69, 0x10, 0xa0, 0x27, 0x0e, 0x4d, 0xb5, 0xb3, 0x2d, 0xe1,
-	0x71, 0xdf, 0x30, 0x23, 0x00, 0x39, 0x80, 0xf2, 0x84, 0xb5, 0x55, 0x7f, 0x1a, 0x72, 0x3d, 0x2a,
-	0x70, 0x8c, 0x30, 0x5a, 0x50, 0x89, 0x83, 0x91, 0x12, 0xe8, 0xd7, 0x9f, 0x6f, 0xb6, 0x73, 0x04,
-	0xa0, 0x78, 0xde, 0xed, 0x77, 0x6f, 0xba, 0xdb, 0x5a, 0xe7, 0x6f, 0x02, 0x85, 0x2b, 0xe6, 0x4f,
-	0x76, 0x21, 0xcf, 0x1a, 0x01, 0xa9, 0x4a, 0x3e, 0x76, 0x09, 0x34, 0xb7, 0xa4, 0x11, 0xb5, 0x08,
-	0x23, 0x47, 0xde, 0x42, 0x9d, 0x59, 0x5f, 0x1c, 0x3a, 0xba, 0x16, 0xf9, 0x82, 0x39, 0x48, 0xe5,
-	0xd0, 0x02, 0xfd, 0xd2, 0x0e, 0x17, 0x50, 0x51, 0x0c, 0xd6, 0x68, 0x8d, 0x1c, 0x39, 0x84, 0x8a,
-	0x85, 0x94, 0xf7, 0x55, 0x24, 0x3b, 0x51, 0xae, 0xe2, 0x36, 0xdb, 0x4c, 0x4a, 0x32, 0x72, 0xe4,
-	0x7b, 0xc8, 0xf7, 0xfd, 0xc1, 0xbd, 0x92, 0x51, 0x42, 0x4e, 0x60, 0x8b, 0x41, 0x98, 0xc8, 0x1b,
-	0x67, 0x8c, 0xfe, 0x94, 0xae, 0xc1, 0xfb, 0x0a, 0x8a, 0x9f, 0x3d, 0x37, 0x83, 0xf9, 0x18, 0x36,
-	0x05, 0xe8, 0x66, 0x84, 0x1e, 0xaf, 0xd2, 0x74, 0xfe, 0xd3, 0x1e, 0x6f, 0x61, 0x67, 0xc1, 0x83,
-	0xb7, 0xd3, 0x08, 0xc3, 0x0c, 0x85, 0x8e, 0x73, 0x74, 0x91, 0xe2, 0x2a, 0x1d, 0xaf, 0xa0, 0xf0,
-	0xde, 0x45, 0x3b, 0x58, 0xdc, 0xaf, 0x14, 0xe8, 0x35, 0xe8, 0x17, 0x48, 0x17, 0x68, 0x96, 0xe4,
-	0x1a, 0x39, 0xf2, 0x23, 0x94, 0x2e, 0x90, 0x5e, 0xd9, 0xde, 0x8c, 0xa4, 0xf7, 0x2f, 0x66, 0x64,
-	0x27, 0xd3, 0xc8, 0x91, 0x3d, 0xd8, 0xbc, 0x40, 0xfa, 0xc4, 0xe6, 0xa7, 0xb0, 0xbb, 0xa0, 0xaf,
-	0x95, 0xa0, 0x36, 0x14, 0x2c, 0xa4, 0x9f, 0x7e, 0x5b, 0x81, 0x94, 0x85, 0xb2, 0x07, 0x25, 0x4b,
-	0x0a, 0x4d, 0xc6, 0x8a, 0x17, 0x15, 0xf7, 0x7d, 0x23, 0x47, 0xde, 0x40, 0xb1, 0x8f, 0xde, 0x1d,
-	0x1d, 0x29, 0xeb, 0x33, 0xba, 0x5d, 0x05, 0xf0, 0x02, 0x69, 0xcf, 0xa3, 0x59, 0xc0, 0x7d, 0x28,
-	0x5f, 0x20, 0xe5, 0x77, 0xec, 0x02, 0x34, 0xaa, 0xac, 0xf9, 0xed, 0xcb, 0x17, 0x55, 0xb4, 0x04,
-	0x6b, 0x9a, 0x29, 0xbd, 0xfc, 0x03, 0x28, 0x5b, 0x11, 0xed, 0x32, 0x55, 0x1a, 0xdd, 0x81, 0x5a,
-	0xcf, 0x1b, 0x04, 0x38, 0x46, 0x4f, 0xcd, 0xae, 0x10, 0xde, 0x81, 0xda, 0x39, 0x3e, 0xd3, 0xe7,
-	0x0c, 0xea, 0x71, 0x9c, 0x27, 0xb5, 0x29, 0x57, 0x7e, 0x06, 0xf5, 0x38, 0xda, 0xf3, 0x3c, 0x7f,
-	0xe0, 0x75, 0xc8, 0xcf, 0x87, 0xaa, 0xac, 0x64, 0x3f, 0xe9, 0x40, 0x55, 0xa2, 0xf8, 0x73, 0x62,
-	0x2b, 0x31, 0xcb, 0x06, 0x94, 0x15, 0xfe, 0x9a, 0x17, 0x4e, 0xe6, 0xc9, 0x3b, 0x84, 0xaa, 0xb5,
-	0x8a, 0x3a, 0x05, 0xdf, 0x07, 0x60, 0x53, 0xeb, 0x95, 0xd9, 0x3e, 0x54, 0x38, 0x98, 0x3f, 0x96,
-	0xb3, 0x98, 0x0f, 0x04, 0x73, 0xcf, 0x0b, 0x31, 0x58, 0x1b, 0xfd, 0xcb, 0x64, 0x82, 0xde, 0x30,
-	0x13, 0x7d, 0x08, 0x55, 0x36, 0x75, 0xed, 0x4f, 0xfa, 0x78, 0x9b, 0xdd, 0x1c, 0x8e, 0xa0, 0x26,
-	0xe1, 0xa6, 0x73, 0x37, 0xca, 0xc6, 0x1f, 0x42, 0x89, 0xe1, 0x59, 0xcb, 0x5f, 0x52, 0xa2, 0x48,
-	0x8b, 0xd4, 0x2e, 0x1b, 0x5e, 0x96, 0xf6, 0x53, 0xa8, 0xcf, 0xd1, 0xea, 0x3d, 0x52, 0xc4, 0x10,
-	0x75, 0xc5, 0x1f, 0x4a, 0x2b, 0xda, 0xd5, 0x29, 0xd4, 0x24, 0x4a, 0x3e, 0x66, 0x12, 0xd3, 0x7c,
-	0x44, 0xb9, 0xdc, 0x13, 0xde, 0x10, 0x63, 0x4c, 0x48, 0xbe, 0x49, 0xbb, 0x59, 0xa8, 0xe8, 0xa2,
-	0x25, 0xf6, 0xc5, 0x72, 0xb4, 0x1c, 0x25, 0xd5, 0xf3, 0xf6, 0x01, 0xd8, 0xdc, 0xba, 0x45, 0x06,
-	0x09, 0x29, 0x19, 0x17, 0xf3, 0x1b, 0x01, 0xe6, 0xbe, 0xe1, 0xaa, 0x13, 0x27, 0x4e, 0x0f, 0xcf,
-	0xdf, 0x42, 0xdb, 0x5d, 0xba, 0xe8, 0x6a, 0xd6, 0xea, 0x04, 0x2e, 0x9d, 0x9f, 0x4d, 0x6b, 0x21,
-	0x77, 0x19, 0xec, 0xe7, 0xe8, 0x3e, 0x83, 0xfd, 0x18, 0x0a, 0xfc, 0x01, 0x18, 0xef, 0x48, 0xf2,
-	0x39, 0xd8, 0xac, 0x25, 0x9f, 0x64, 0x46, 0xae, 0xad, 0x1d, 0x6b, 0xbf, 0x17, 0xf9, 0x1f, 0xe1,
-	0x93, 0xff, 0x03, 0x00, 0x00, 0xff, 0xff, 0xd8, 0x83, 0xb8, 0x38, 0x17, 0x0f, 0x00, 0x00,
+	// 1940 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x09, 0x6e, 0x88, 0x02, 0xff, 0xac, 0x59, 0x4b, 0x73, 0xdb, 0xc8,
+	0x11, 0x26, 0xc4, 0x87, 0xc8, 0x26, 0x45, 0xcb, 0xe3, 0x47, 0x69, 0xb1, 0xf6, 0xae, 0x76, 0x76,
+	0x65, 0x2b, 0x7a, 0xad, 0x8b, 0xf6, 0xc1, 0xc9, 0xcd, 0x16, 0x69, 0x99, 0xb1, 0xbc, 0xab, 0x80,
+	0x72, 0x9c, 0xca, 0x1e, 0x5c, 0x30, 0xd9, 0x32, 0x51, 0x22, 0x01, 0x06, 0x18, 0x2a, 0x62, 0x55,
+	0x0e, 0xc9, 0x21, 0xb7, 0xfc, 0x83, 0xfc, 0x88, 0xfc, 0xba, 0xdc, 0xb7, 0xe6, 0x81, 0xd7, 0x00,
+	0x24, 0x65, 0xae, 0x2f, 0x2a, 0xcc, 0xcc, 0xd7, 0xdf, 0x7c, 0xe8, 0xe9, 0x69, 0xb0, 0x5b, 0x50,
+	0x1f, 0xcf, 0x06, 0x4e, 0x70, 0x34, 0xf1, 0x3d, 0xe6, 0x91, 0xb2, 0x18, 0xd0, 0x0a, 0x94, 0x7e,
+	0x9a, 0x8e, 0x46, 0xf4, 0xff, 0x06, 0x14, 0xdf, 0xe0, 0x8c, 0x6c, 0x42, 0xf1, 0x12, 0x67, 0x5b,
+	0xc6, 0xb6, 0xb1, 0x5b, 0xb3, 0xf8, 0x23, 0xb9, 0x0b, 0xe5, 0x91, 0x33, 0x76, 0xd8, 0x56, 0x71,
+	0xdb, 0xd8, 0x2d, 0x5a, 0x72, 0x40, 0x4c, 0xa8, 0xfa, 0x78, 0xe5, 0x04, 0x8e, 0xe7, 0x6e, 0x95,
+	0xc4, 0x42, 0x34, 0x26, 0x8f, 0xa0, 0x39, 0x76, 0xdc, 0xb7, 0xde, 0xc0, 0x0a, 0x11, 0x20, 0x10,
+	0xda, 0xac, 0xc0, 0xd9, 0xd7, 0x49, 0x5c, 0x5d, 0xe1, 0x52, 0xb3, 0xe4, 0x00, 0x6e, 0x8f, 0x1d,
+	0xf7, 0xd8, 0x47, 0x9b, 0x61, 0x04, 0x6d, 0x08, 0x68, 0x76, 0x41, 0xa0, 0xed, 0x6b, 0x0d, 0xbd,
+	0xa1, 0xd0, 0xfa, 0x02, 0x7d, 0x00, 0xa5, 0x97, 0x9e, 0x37, 0xe2, 0x6f, 0x79, 0x65, 0x8f, 0xa6,
+	0x28, 0xde, 0xbc, 0x6a, 0xc9, 0x01, 0x7d, 0x02, 0xd0, 0xb9, 0x9e, 0x38, 0xbe, 0xcd, 0x38, 0x73,
+	0xd6, 0x37, 0x9b, 0x50, 0xc4, 0xeb, 0xc9, 0xd6, 0xda, 0xb6, 0xb1, 0x4b, 0x2c, 0xfe, 0x48, 0x9f,
+	0x42, 0xed, 0xe5, 0x8c, 0xe1, 0x9f, 0xb9, 0x79, 0xbe, 0x33, 0xe5, 0x36, 0xdc, 0xa4, 0x11, 0x6e,
+	0xd3, 0x82, 0x6a, 0xd7, 0x65, 0x37, 0xb2, 0x21, 0xa1, 0xcd, 0x33, 0x80, 0x57, 0x23, 0xcf, 0xbe,
+	0x99, 0x95, 0x11, 0x5a, 0x7d, 0x03, 0xd5, 0x37, 0x38, 0x0b, 0x4e, 0x9d, 0x80, 0x11, 0x02, 0xa5,
+	0x4b, 0x9c, 0x05, 0x5b, 0xc6, 0x76, 0x71, 0xb7, 0x66, 0x89, 0x67, 0xda, 0x86, 0x92, 0x58, 0x5b,
+	0xc8, 0x57, 0x8c, 0x94, 0xe7, 0x07, 0x07, 0x7d, 0x0d, 0x55, 0xce, 0xd2, 0x65, 0x38, 0xce, 0x67,
+	0x72, 0xdc, 0x01, 0x5e, 0x0b, 0x65, 0x45, 0x4b, 0x0e, 0x62, 0xfe, 0x62, 0xd2, 0x33, 0xff, 0x80,
+	0x5a, 0xc7, 0xf7, 0x3d, 0xff, 0xb5, 0x1d, 0x0c, 0xc9, 0x33, 0xa8, 0x20, 0x1f, 0x48, 0xc9, 0xf5,
+	0xd6, 0x83, 0x23, 0x19, 0xd0, 0x11, 0x42, 0x3e, 0x05, 0x1d, 0x97, 0xf9, 0x33, 0x4b, 0x61, 0xcd,
+	0xdf, 0x43, 0x3d, 0x31, 0xbd, 0xcc, 0x53, 0x35, 0xb5, 0xf3, 0x1f, 0xd6, 0x9e, 0x1b, 0xf4, 0x3f,
+	0x06, 0x40, 0x8f, 0xf9, 0x8e, 0xfb, 0x49, 0xec, 0x9f, 0x35, 0x6d, 0x25, 0x9d, 0x12, 0x0b, 0x8a,
+	0x6d, 0x8e, 0xc4, 0xf1, 0x48, 0x41, 0x12, 0x6a, 0x3e, 0x07, 0x88, 0x27, 0x3f, 0x4b, 0xce, 0x3f,
+	0x0d, 0x28, 0xcd, 0x11, 0x72, 0x90, 0x16, 0x72, 0x5f, 0x09, 0xf9, 0x12, 0x12, 0x1a, 0x49, 0x09,
+	0x5d, 0xa8, 0x71, 0xce, 0x57, 0x0e, 0x8e, 0x06, 0xf9, 0x86, 0x17, 0x7c, 0x29, 0xd4, 0x2e, 0x06,
+	0x73, 0x8e, 0xf6, 0x14, 0x1a, 0x11, 0x55, 0x0f, 0xd9, 0x62, 0xb6, 0x62, 0x2e, 0x5b, 0x1c, 0x88,
+	0xd4, 0x87, 0xc6, 0x7b, 0x9b, 0xf5, 0x87, 0x16, 0xfe, 0x6d, 0x8a, 0xb9, 0x01, 0x7c, 0x1f, 0x2a,
+	0x13, 0x1f, 0x2f, 0x1c, 0x19, 0x77, 0x55, 0x4b, 0x8d, 0x38, 0xd2, 0xc7, 0x2b, 0x15, 0xc0, 0xfc,
+	0x91, 0x34, 0x61, 0xcd, 0x19, 0xa8, 0xac, 0xb6, 0xe6, 0x0c, 0xb8, 0x65, 0xdf, 0x76, 0xfb, 0x38,
+	0xda, 0x2a, 0x4b, 0x4b, 0x39, 0xa2, 0xff, 0x33, 0xa0, 0xdc, 0xb9, 0x42, 0x97, 0x91, 0x3d, 0x28,
+	0xb1, 0xd9, 0x44, 0x26, 0x8f, 0x66, 0xe4, 0x7d, 0xb1, 0x26, 0xff, 0x9e, 0xcf, 0x26, 0x68, 0x09,
+	0x0c, 0xd9, 0x83, 0xf5, 0xfe, 0xd4, 0xf7, 0xd1, 0x95, 0x97, 0xa6, 0xde, 0xda, 0x54, 0xf0, 0x28,
+	0x6f, 0x58, 0x21, 0x80, 0x1c, 0x40, 0x75, 0xc2, 0xd3, 0xaa, 0x37, 0x0d, 0x84, 0x9e, 0x3c, 0x70,
+	0x84, 0xa0, 0xdb, 0x50, 0x8b, 0x36, 0x23, 0xeb, 0x50, 0x3c, 0x7b, 0x77, 0xbe, 0x59, 0x20, 0x00,
+	0x95, 0x76, 0xe7, 0xb4, 0x73, 0xde, 0xd9, 0x34, 0xe8, 0x7f, 0x0d, 0x80, 0x33, 0xf4, 0xc7, 0x4e,
+	0x20, 0x52, 0x65, 0x0b, 0xaa, 0x13, 0xf4, 0xc7, 0xe7, 0x59, 0xe9, 0x31, 0xe8, 0x48, 0x48, 0x8f,
+	0x70, 0xa1, 0x63, 0x65, 0x64, 0x08, 0xc7, 0x7e, 0x0d, 0x35, 0xdf, 0x76, 0x3f, 0xe1, 0x07, 0x74,
+	0x07, 0xea, 0x88, 0xab, 0x62, 0xa2, 0xe3, 0x0e, 0xe8, 0x1e, 0x94, 0x84, 0x59, 0x15, 0x4a, 0x56,
+	0xe7, 0x45, 0x7b, 0xb3, 0x40, 0x6a, 0x50, 0x7e, 0x6f, 0x75, 0xb9, 0x1c, 0xb2, 0x01, 0x35, 0x3e,
+	0x29, 0x87, 0x6b, 0xf4, 0xdf, 0x06, 0x34, 0x2d, 0x0c, 0x26, 0x9e, 0x1b, 0xe0, 0x6b, 0xb4, 0x07,
+	0xe8, 0x93, 0x87, 0x00, 0xfd, 0xd1, 0x34, 0x60, 0xe8, 0x7f, 0x70, 0x06, 0x42, 0x63, 0xc9, 0xaa,
+	0xa9, 0x99, 0xee, 0x80, 0x6f, 0x3d, 0xc6, 0xf1, 0x47, 0xb9, 0xba, 0x26, 0x56, 0xab, 0x72, 0xa2,
+	0x3b, 0x48, 0x7d, 0xa2, 0x8a, 0xda, 0x27, 0x4a, 0x68, 0xbe, 0x60, 0x1f, 0x18, 0xfa, 0x63, 0xe1,
+	0xd9, 0x12, 0xd7, 0x7c, 0xc1, 0xce, 0xd1, 0x1f, 0xd3, 0x3b, 0x70, 0xfb, 0xc5, 0x94, 0x0d, 0x3b,
+	0xae, 0xfd, 0x71, 0x84, 0x2a, 0xa0, 0xe8, 0x5d, 0x20, 0x7c, 0xb2, 0xed, 0x04, 0xc9, 0xd9, 0x0e,
+	0xdc, 0xe1, 0xb3, 0xe8, 0x32, 0xa7, 0x2f, 0x3e, 0x2b, 0x32, 0xfa, 0x08, 0x94, 0x5c, 0x7b, 0x8c,
+	0x2a, 0xfc, 0xc4, 0x33, 0x97, 0x33, 0xb1, 0x83, 0xe0, 0xef, 0x9e, 0x1f, 0x5e, 0x8f, 0x68, 0x4c,
+	0xdb, 0x92, 0xfc, 0x5d, 0x80, 0xfe, 0x8b, 0xc1, 0x60, 0x55, 0x96, 0xdd, 0x98, 0xe5, 0x04, 0xd9,
+	0x02, 0x16, 0xba, 0x0f, 0xf7, 0x42, 0x64, 0x1b, 0x47, 0xb8, 0x50, 0x38, 0xfd, 0x19, 0x1e, 0x86,
+	0xe0, 0xe3, 0x21, 0x3f, 0xd7, 0x33, 0xb5, 0xe1, 0xaa, 0x3a, 0x5f, 0xc2, 0x56, 0xa4, 0xd3, 0xb7,
+	0x5d, 0x66, 0x79, 0xa3, 0xa4, 0x80, 0x69, 0x80, 0x7e, 0xc8, 0xc5, 0x9f, 0xf9, 0x9c, 0xef, 0x8d,
+	0xc2, 0x84, 0x28, 0x9e, 0xe9, 0x31, 0x7c, 0x15, 0x72, 0x58, 0x78, 0xe5, 0x5d, 0xa2, 0x46, 0x92,
+	0x11, 0x94, 0x47, 0xa2, 0x1c, 0xc6, 0x4d, 0x17, 0xbb, 0x3d, 0x89, 0x4c, 0xbb, 0x56, 0x70, 0x1a,
+	0x09, 0xce, 0x7b, 0x32, 0x22, 0xb8, 0x30, 0xfe, 0x0d, 0x0c, 0x03, 0x45, 0x4d, 0x73, 0x82, 0xe4,
+	0xb4, 0x3a, 0x08, 0x3e, 0x9d, 0x39, 0x88, 0x0c, 0xf5, 0x2f, 0xf0, 0x4d, 0x24, 0x82, 0xfb, 0x2d,
+	0xbe, 0xa4, 0x8b, 0x5e, 0x7c, 0x07, 0x4a, 0xfc, 0xf2, 0x8a, 0x17, 0xaf, 0xb7, 0x6e, 0x67, 0x2e,
+	0xb8, 0x25, 0x96, 0xe9, 0x00, 0xbe, 0x0d, 0xc9, 0xa5, 0x43, 0x73, 0xd9, 0x75, 0x4d, 0xc9, 0x74,
+	0x50, 0x9b, 0x93, 0x0e, 0x6a, 0x89, 0x74, 0x70, 0x2c, 0xfd, 0x18, 0x5e, 0x2d, 0x79, 0xd7, 0xc9,
+	0x21, 0x54, 0x86, 0xe2, 0xbe, 0x0b, 0xea, 0x7a, 0xeb, 0x9e, 0x12, 0x99, 0x4e, 0x06, 0x96, 0x02,
+	0xd1, 0xb6, 0xf4, 0x65, 0x74, 0x15, 0x57, 0x63, 0xf9, 0x05, 0xee, 0xa6, 0xaf, 0xee, 0x4a, 0x34,
+	0xfc, 0x73, 0xc4, 0xbc, 0x4b, 0x74, 0xc3, 0x4f, 0x9e, 0x18, 0x84, 0x12, 0xa3, 0x0b, 0xbd, 0x9a,
+	0xc4, 0xbf, 0xc6, 0x2c, 0x22, 0xea, 0x56, 0x56, 0xc8, 0x8f, 0x2a, 0x08, 0x3f, 0xa3, 0x62, 0x40,
+	0x4f, 0xe0, 0xbe, 0x9e, 0x02, 0x56, 0x13, 0xf9, 0xb3, 0x8c, 0xca, 0xbc, 0xf4, 0xb0, 0x1a, 0xe1,
+	0x1f, 0xe3, 0xab, 0x9d, 0x48, 0x0f, 0xab, 0x71, 0xbd, 0x01, 0x33, 0x2f, 0x4d, 0xfc, 0xa6, 0xb8,
+	0x8b, 0xd2, 0xc5, 0x6a, 0x2c, 0x97, 0x31, 0xcb, 0x6f, 0x38, 0xd4, 0xf8, 0x56, 0x17, 0x17, 0xdd,
+	0x6a, 0x15, 0xe4, 0x71, 0xda, 0xf9, 0x92, 0x21, 0xa4, 0xc8, 0xe3, 0x54, 0xb7, 0x32, 0x39, 0x4f,
+	0xf3, 0x11, 0xb9, 0x18, 0x84, 0xf1, 0x99, 0xcc, 0x8c, 0xab, 0xf9, 0xfb, 0x2c, 0x4e, 0x6c, 0x99,
+	0xac, 0xb9, 0x1a, 0xe3, 0x9f, 0x60, 0x7b, 0x7e, 0xaa, 0x5c, 0x89, 0xb2, 0xf5, 0xaf, 0x07, 0x50,
+	0x7e, 0xcb, 0x01, 0xe4, 0x11, 0x94, 0x78, 0x85, 0x46, 0xea, 0xca, 0x80, 0x57, 0xe7, 0xe6, 0x2d,
+	0x35, 0x08, 0x6b, 0x37, 0x5a, 0x20, 0x3f, 0x42, 0x93, 0x8f, 0xde, 0x3b, 0x6c, 0x78, 0x26, 0x7f,
+	0xc8, 0x42, 0x0c, 0xca, 0x33, 0xd8, 0x86, 0xe2, 0x6b, 0x3b, 0x48, 0xa1, 0xc2, 0x3d, 0x78, 0x05,
+	0x4c, 0x0b, 0xe4, 0x10, 0x6a, 0x3d, 0x64, 0xa2, 0xe0, 0x45, 0x12, 0x86, 0x54, 0x5c, 0xff, 0x9a,
+	0x49, 0x49, 0xb4, 0x40, 0xbe, 0x83, 0xd2, 0xa9, 0xd7, 0xbf, 0xcc, 0x65, 0x54, 0x90, 0xa7, 0x70,
+	0x8b, 0x43, 0xb8, 0xc8, 0x73, 0x67, 0x8c, 0xde, 0x94, 0xdd, 0x80, 0xf7, 0x7b, 0xa8, 0xbc, 0x73,
+	0x47, 0x4b, 0x98, 0x9f, 0xc0, 0x86, 0x04, 0x9d, 0x0f, 0xd1, 0x15, 0xe5, 0x83, 0xfe, 0xc3, 0x58,
+	0xb7, 0xf8, 0x11, 0x6e, 0xa7, 0x2c, 0x44, 0x9d, 0x1b, 0x62, 0xf8, 0x20, 0x47, 0x87, 0x8c, 0xbc,
+	0x45, 0x3a, 0xbe, 0x87, 0xf2, 0xf1, 0x08, 0x6d, 0x3f, 0x7d, 0x5e, 0x1a, 0x68, 0x07, 0x8a, 0x27,
+	0xc8, 0x52, 0x34, 0x19, 0xb9, 0xb4, 0x40, 0x7e, 0x07, 0xeb, 0x27, 0xc8, 0xde, 0xda, 0xee, 0x8c,
+	0xe8, 0xe7, 0x17, 0x31, 0xf2, 0x92, 0x89, 0x16, 0xc8, 0x1e, 0x6c, 0x9c, 0x20, 0x9b, 0x73, 0xf8,
+	0x1a, 0xf6, 0x11, 0x14, 0x6f, 0xe4, 0xa0, 0x5d, 0x28, 0xf7, 0x90, 0xfd, 0xf4, 0x97, 0x05, 0x48,
+	0x15, 0x28, 0x7b, 0xb0, 0xde, 0x53, 0x42, 0x93, 0x7b, 0x45, 0x2f, 0x15, 0x15, 0xe4, 0xb4, 0x40,
+	0x1e, 0x43, 0xe5, 0x14, 0xdd, 0x4f, 0x6c, 0x98, 0x1b, 0x9f, 0x61, 0xdb, 0x43, 0x02, 0x4f, 0x90,
+	0x75, 0x5d, 0xb6, 0x0c, 0xb8, 0x0f, 0xd5, 0x13, 0x64, 0xa2, 0xf9, 0x91, 0x82, 0x86, 0x91, 0x15,
+	0xb7, 0x45, 0xc4, 0x4b, 0x55, 0x7a, 0x92, 0x55, 0x67, 0xd2, 0x5f, 0xff, 0x00, 0xaa, 0xbd, 0x90,
+	0x36, 0x4b, 0xa5, 0xa3, 0x5b, 0xd0, 0xe8, 0xba, 0x7d, 0x1f, 0xc7, 0xe8, 0xe6, 0xb3, 0xe7, 0x08,
+	0x6f, 0x41, 0xa3, 0x8d, 0x9f, 0x69, 0xf3, 0x1c, 0x9a, 0xd1, 0x3e, 0x73, 0xb5, 0xe5, 0xbe, 0xf9,
+	0x73, 0x68, 0x46, 0xbb, 0x7d, 0x9e, 0xe5, 0x0f, 0x22, 0x0e, 0xc5, 0xfd, 0xc8, 0x0b, 0x2b, 0x95,
+	0x4f, 0x5a, 0x50, 0x57, 0x28, 0xd1, 0xe7, 0xb9, 0x95, 0x58, 0xe5, 0x13, 0xb9, 0x11, 0xbe, 0x23,
+	0x02, 0x67, 0xe9, 0xcd, 0x3b, 0x84, 0x7a, 0x6f, 0x11, 0xb5, 0x06, 0xdf, 0x07, 0xe0, 0x4b, 0x37,
+	0x0b, 0xb3, 0x7d, 0xa8, 0x09, 0xb0, 0xe8, 0x62, 0x2e, 0x63, 0x3e, 0x90, 0xcc, 0x5d, 0x37, 0x40,
+	0xff, 0xc6, 0xe8, 0x17, 0x93, 0x09, 0xba, 0x83, 0xa5, 0xe8, 0x43, 0xa8, 0xf3, 0xa5, 0x33, 0x6f,
+	0x72, 0x8a, 0x17, 0xcb, 0x93, 0xc3, 0x11, 0x34, 0x14, 0xdc, 0x72, 0x3e, 0x0d, 0x97, 0xe3, 0x0f,
+	0x61, 0x9d, 0xe3, 0x79, 0xca, 0xcf, 0x28, 0xc9, 0x71, 0x8b, 0xd2, 0xae, 0x12, 0xde, 0x32, 0xed,
+	0xcf, 0xa0, 0x19, 0xa3, 0xf3, 0xcf, 0x28, 0x67, 0x0f, 0x19, 0x57, 0xa2, 0x83, 0xb5, 0x20, 0x5d,
+	0x3d, 0x83, 0x86, 0x42, 0xa9, 0x2e, 0x53, 0x62, 0x59, 0xcc, 0xe4, 0xbe, 0xee, 0x53, 0x91, 0x10,
+	0x23, 0x4c, 0x40, 0xee, 0xe8, 0x66, 0x3d, 0xcc, 0xc9, 0xa2, 0xeb, 0xfc, 0x89, 0xfb, 0x28, 0xbb,
+	0x8b, 0x96, 0xf3, 0xf6, 0x01, 0xf8, 0xda, 0x4d, 0x83, 0x0c, 0x12, 0x52, 0x96, 0x7c, 0x98, 0x1f,
+	0x4b, 0xb0, 0xb0, 0x0d, 0x16, 0xdd, 0x38, 0x79, 0x7b, 0x84, 0xff, 0x52, 0x69, 0x37, 0xf3, 0xa1,
+	0x6b, 0xf4, 0x16, 0x3b, 0x30, 0x73, 0x7f, 0x36, 0x7a, 0x29, 0xdf, 0x2d, 0x61, 0x6f, 0xe3, 0xe8,
+	0x33, 0xd8, 0x9f, 0x40, 0x59, 0x74, 0xe6, 0xa2, 0x13, 0x49, 0xf6, 0xe9, 0xcc, 0x46, 0xb2, 0x57,
+	0x46, 0x0b, 0xbb, 0xc6, 0x13, 0x83, 0x1c, 0x03, 0xc4, 0x45, 0x22, 0xd9, 0x52, 0x88, 0x4c, 0x4b,
+	0xc6, 0xfc, 0x2a, 0x67, 0x45, 0xfe, 0xba, 0xa2, 0x05, 0xf2, 0x0a, 0xea, 0x89, 0x22, 0x91, 0x24,
+	0xb1, 0xe9, 0x1e, 0x8e, 0x69, 0xe6, 0x2d, 0x45, 0x3c, 0x5d, 0x68, 0x24, 0xcb, 0x44, 0x92, 0x44,
+	0x6b, 0x6d, 0x1f, 0xf3, 0xeb, 0xdc, 0xb5, 0x88, 0xea, 0x25, 0xac, 0xab, 0x82, 0x30, 0x25, 0x27,
+	0xdd, 0xf5, 0x49, 0xc9, 0xd1, 0xea, 0xc7, 0x98, 0x83, 0xff, 0x9c, 0xd0, 0x39, 0xe2, 0xc6, 0x44,
+	0x86, 0x23, 0x51, 0x68, 0xd0, 0x02, 0xe9, 0x40, 0x35, 0xfc, 0xcd, 0x4e, 0x74, 0x64, 0xa2, 0x39,
+	0x91, 0x7a, 0x1d, 0xfd, 0x47, 0x3e, 0x2d, 0x90, 0x37, 0x00, 0x71, 0xf5, 0x48, 0x1e, 0x68, 0xe0,
+	0x54, 0x3b, 0xc3, 0x7c, 0x38, 0x67, 0x35, 0x22, 0xeb, 0x03, 0xc9, 0x56, 0x90, 0xe4, 0x07, 0xcd,
+	0x2c, 0xb7, 0xff, 0x64, 0xee, 0x2c, 0x41, 0x45, 0x9b, 0x9c, 0xc3, 0x46, 0xaa, 0xaa, 0x24, 0xdf,
+	0xea, 0x7e, 0xd2, 0xda, 0x51, 0xe6, 0xf6, 0x7c, 0x40, 0xc4, 0xfa, 0x1e, 0x9a, 0xe9, 0xfa, 0x92,
+	0xe8, 0x56, 0x99, 0x0e, 0x95, 0xf9, 0xdd, 0x02, 0x44, 0xf2, 0xac, 0x55, 0xad, 0x99, 0x3a, 0xeb,
+	0x74, 0xbb, 0x2a, 0x75, 0xd6, 0x5a, 0x69, 0x1a, 0x73, 0xe8, 0xf1, 0x92, 0x6e, 0x64, 0x65, 0x38,
+	0x32, 0xf1, 0x12, 0x16, 0x90, 0x44, 0x47, 0xce, 0x8b, 0x17, 0xbd, 0xe2, 0x94, 0xf1, 0x12, 0x57,
+	0x73, 0xa9, 0x78, 0xc9, 0xb4, 0xbf, 0x52, 0xf1, 0x92, 0x2d, 0x01, 0x69, 0x81, 0x5c, 0xc0, 0x9d,
+	0x9c, 0x8a, 0x8e, 0xec, 0xe8, 0x2f, 0x92, 0xdb, 0x27, 0x33, 0x1f, 0x2d, 0x83, 0x45, 0xfb, 0x38,
+	0x70, 0x37, 0xaf, 0xce, 0x23, 0x3a, 0xc3, 0x9c, 0x9e, 0x99, 0xf9, 0x78, 0x29, 0x2e, 0xdc, 0xea,
+	0x63, 0x45, 0xfc, 0x63, 0xf6, 0xe9, 0xaf, 0x01, 0x00, 0x00, 0xff, 0xff, 0x6c, 0x84, 0x57, 0xec,
+	0xa7, 0x1d, 0x00, 0x00,
 }

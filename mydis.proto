@@ -130,6 +130,40 @@ service Mydis {
 	// -- push functions
 	// Watch for changes to a key.
 	rpc Watch(stream WatchRequest) returns (stream Event) {}
+
+	// -- auth passthrough functions
+	// AuthEnable enables authentication.
+	rpc AuthEnable(AuthEnableRequest) returns (AuthEnableResponse) {}
+	// AuthDisable disables authentication.
+	rpc AuthDisable(AuthDisableRequest) returns (AuthDisableResponse) {}
+	// Authenticate processes an authenticate request.
+	rpc Authenticate(AuthenticateRequest) returns (AuthenticateResponse) {}
+	// UserAdd adds a new user.
+	rpc UserAdd(AuthUserAddRequest) returns (AuthUserAddResponse) {}
+	// UserGet gets detailed user information.
+	rpc UserGet(AuthUserGetRequest) returns (AuthUserGetResponse) {}
+	// UserList gets a list of all users.
+	rpc UserList(AuthUserListRequest) returns (AuthUserListResponse) {}
+	// UserDelete deletes a specified user.
+	rpc UserDelete(AuthUserDeleteRequest) returns (AuthUserDeleteResponse) {}
+	// UserChangePassword changes the password of a specified user.
+	rpc UserChangePassword(AuthUserChangePasswordRequest) returns (AuthUserChangePasswordResponse) {}
+	// UserGrantRole grants a role to a specified user.
+	rpc UserGrantRole(AuthUserGrantRoleRequest) returns (AuthUserGrantRoleResponse) {}
+	// UserRevokeRole revokes a role of specified user.
+	rpc UserRevokeRole(AuthUserRevokeRoleRequest) returns (AuthUserRevokeRoleResponse) {}
+	// RoleAdd adds a new role.
+	rpc RoleAdd(AuthRoleAddRequest) returns (AuthRoleAddResponse) {}
+	// RoleGet gets detailed role information.
+	rpc RoleGet(AuthRoleGetRequest) returns (AuthRoleGetResponse) {}
+	// RoleList gets lists of all roles.
+	rpc RoleList(AuthRoleListRequest) returns (AuthRoleListResponse) {}
+	// RoleDelete deletes a specified role.
+	rpc RoleDelete(AuthRoleDeleteRequest) returns (AuthRoleDeleteResponse) {}
+	// RoleGrantPermission grants a permission of a specified key or range to a specified role.
+	rpc RoleGrantPermission(AuthRoleGrantPermissionRequest) returns (AuthRoleGrantPermissionResponse) {}
+	// RoleRevokePermission revokes a key or range permission of a specified role.
+	rpc RoleRevokePermission(AuthRoleRevokePermissionRequest) returns (AuthRoleRevokePermissionResponse) {}
 }
 
 // Null object.
@@ -244,4 +278,179 @@ message Event {
 	EventType type = 1;
 	ByteValue current = 3;
 	ByteValue previous = 4;
+}
+
+// -- Etcd auth passthrough messages
+// Permission is a single entity
+message Permission {
+	enum Type {
+		READ = 0;
+		WRITE = 1;
+		READWRITE = 2;
+	}
+	Type permType = 1;
+
+	bytes key = 2;
+	bytes range_end = 3;
+}
+
+message ResponseHeader {
+  // cluster_id is the ID of the cluster which sent the response.
+  uint64 cluster_id = 1;
+  // member_id is the ID of the member which sent the response.
+  uint64 member_id = 2;
+  // revision is the key-value store revision when the request was applied.
+  int64 revision = 3;
+  // raft_term is the raft term when the request was applied.
+  uint64 raft_term = 4;
+}
+
+message AuthEnableRequest {
+}
+
+message AuthDisableRequest {
+}
+
+message AuthenticateRequest {
+  string name = 1;
+  string password = 2;
+}
+
+message AuthUserAddRequest {
+  string name = 1;
+  string password = 2;
+}
+
+message AuthUserGetRequest {
+  string name = 1;
+}
+
+message AuthUserDeleteRequest {
+  // name is the name of the user to delete.
+  string name = 1;
+}
+
+message AuthUserChangePasswordRequest {
+  // name is the name of the user whose password is being changed.
+  string name = 1;
+  // password is the new password for the user.
+  string password = 2;
+}
+
+message AuthUserGrantRoleRequest {
+  // user is the name of the user which should be granted a given role.
+  string user = 1;
+  // role is the name of the role to grant to the user.
+  string role = 2;
+}
+
+message AuthUserRevokeRoleRequest {
+  string name = 1;
+  string role = 2;
+}
+
+message AuthRoleAddRequest {
+  // name is the name of the role to add to the authentication system.
+  string name = 1;
+}
+
+message AuthRoleGetRequest {
+  string role = 1;
+}
+
+message AuthUserListRequest {
+}
+
+message AuthRoleListRequest {
+}
+
+message AuthRoleDeleteRequest {
+  string role = 1;
+}
+
+message AuthRoleGrantPermissionRequest {
+  // name is the name of the role which will be granted the permission.
+  string name = 1;
+  // perm is the permission to grant to the role.
+  Permission perm = 2;
+}
+
+message AuthRoleRevokePermissionRequest {
+  string role = 1;
+  string key = 2;
+  string range_end = 3;
+}
+
+message AuthEnableResponse {
+  ResponseHeader header = 1;
+}
+
+message AuthDisableResponse {
+  ResponseHeader header = 1;
+}
+
+message AuthenticateResponse {
+  ResponseHeader header = 1;
+  // token is an authorized token that can be used in succeeding RPCs
+  string token = 2;
+}
+
+message AuthUserAddResponse {
+  ResponseHeader header = 1;
+}
+
+message AuthUserGetResponse {
+  ResponseHeader header = 1;
+
+  repeated string roles = 2;
+}
+
+message AuthUserDeleteResponse {
+  ResponseHeader header = 1;
+}
+
+message AuthUserChangePasswordResponse {
+  ResponseHeader header = 1;
+}
+
+message AuthUserGrantRoleResponse {
+  ResponseHeader header = 1;
+}
+
+message AuthUserRevokeRoleResponse {
+  ResponseHeader header = 1;
+}
+
+message AuthRoleAddResponse {
+  ResponseHeader header = 1;
+}
+
+message AuthRoleGetResponse {
+  ResponseHeader header = 1;
+
+  repeated Permission perm = 2;
+}
+
+message AuthRoleListResponse {
+  ResponseHeader header = 1;
+
+  repeated string roles = 2;
+}
+
+message AuthUserListResponse {
+  ResponseHeader header = 1;
+
+  repeated string users = 2;
+}
+
+message AuthRoleDeleteResponse {
+  ResponseHeader header = 1;
+}
+
+message AuthRoleGrantPermissionResponse {
+  ResponseHeader header = 1;
+}
+
+message AuthRoleRevokePermissionResponse {
+  ResponseHeader header = 1;
 }
