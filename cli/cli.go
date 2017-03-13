@@ -64,10 +64,10 @@ var help = map[string][]string{
 	"USERREVOKEROLE":  []string{"USERREVOKEROLE username role", "Revoke a role from a user"},
 	"ROLEADD":         []string{"ROLEADD role", "Add a new role"},
 	"ROLEGET":         []string{"ROLEGET role", "Get detailed information for a role"},
-	"ROLELIST":        []string{"ROLELIST", "REturns a list of roles"},
+	"ROLELIST":        []string{"ROLELIST", "Returns a list of roles"},
 	"ROLEDELETE":      []string{"ROLEDELETE role", "Delete a role"},
-	"ROLEGRANTPERM":   []string{"ROLEGRANTPERM role key keyEnd"},
-	"ROLEREVOKEPERM":  []string{"ROLEREVOKEPERM role key keyEnd"},
+	"ROLEGRANTPERM":   []string{"ROLEGRANTPERM role key permType", "Grant a permission to a role, key can end with '*', permType can be one of: READ, WRITE, READWRITE"},
+	"ROLEREVOKEPERM":  []string{"ROLEREVOKEPERM role key permType", "Revoke a permission from a role, key can end with '*', permType can be one of: READ, WRITE, READWRITE"},
 }
 
 var closeCh = make(chan struct{})
@@ -457,11 +457,100 @@ func command(client *mydis.Client, cmd string, args []string) error {
 		return client.AuthDisable()
 	} else if cmd == "AUTHENTICATE" {
 		if len(args) >= 2 {
-			token, err := client.Authenticate(args[0], args[1])
+			_, err := client.Authenticate(args[0], args[1])
 			if err != nil {
 				return err
 			}
-			fmt.Println(token)
+			return nil
+		}
+		return errNotEnoughArgs
+	} else if cmd == "USERADD" {
+		if len(args) >= 2 {
+			return client.UserAdd(args[0], args[1])
+		}
+		return errNotEnoughArgs
+	} else if cmd == "USERGET" {
+		if len(args) >= 1 {
+			roles, err := client.UserGet(args[0])
+			if err != nil {
+				return err
+			}
+			displayList(roles)
+			return nil
+		}
+		return errNotEnoughArgs
+	} else if cmd == "USERLIST" {
+		users, err := client.UserList()
+		if err != nil {
+			return err
+		}
+		displayList(users)
+		return nil
+	} else if cmd == "USERDELETE" {
+		if len(args) >= 1 {
+			return client.UserDelete(args[0])
+		}
+		return errNotEnoughArgs
+	} else if cmd == "USERCHANGEPASS" {
+		if len(args) >= 2 {
+			return client.UserChangePassword(args[0], args[1])
+		}
+		return errNotEnoughArgs
+	} else if cmd == "USERGRANTROLE" {
+		if len(args) >= 2 {
+			return client.UserGrantRole(args[0], args[1])
+		}
+		return errNotEnoughArgs
+	} else if cmd == "USERREVOKEROLE" {
+		if len(args) >= 2 {
+			return client.UserRevokeRole(args[0], args[1])
+		}
+		return errNotEnoughArgs
+	} else if cmd == "ROLEADD" {
+		if len(args) >= 1 {
+			return client.RoleAdd(args[0])
+		}
+		return errNotEnoughArgs
+	} else if cmd == "ROLEGET" {
+		if len(args) >= 1 {
+			perms, err := client.RoleGet(args[0])
+			if err != nil {
+				return err
+			}
+			displayPerms(perms)
+			return nil
+		}
+		return errNotEnoughArgs
+	} else if cmd == "ROLELIST" {
+		roles, err := client.RoleList()
+		if err != nil {
+			return err
+		}
+		displayList(roles)
+		return nil
+	} else if cmd == "ROLEDELETE" {
+		if len(args) >= 1 {
+			return client.RoleDelete(args[0])
+		}
+		return errNotEnoughArgs
+	} else if cmd == "ROLEGRANTPERM" {
+		if len(args) >= 3 {
+			role := args[0]
+			perm := mydis.GetPermission(args[1], args[2])
+			if perm == nil {
+				return errors.New("Unrecognized permType: " + args[2])
+			}
+			return client.RoleGrantPermission(role, perm)
+		}
+		return errNotEnoughArgs
+	} else if cmd == "ROLEREVOKEPERM" {
+		if len(args) >= 3 {
+			role := args[0]
+			perm := mydis.GetPermission(args[1], args[2])
+			if perm == nil {
+				return errors.New("Unrecognized permType: " + args[2])
+			}
+			return client.RoleRevokePermission(role, perm)
 		}
 	}
 	return errors.New("Unknown command: " + cmd)
@@ -563,6 +652,31 @@ func displayMap(result map[string]mydis.Value) {
 	sort.Strings(keys)
 	for _, key := range keys {
 		fmt.Println(key+":", result[key])
+	}
+}
+
+func displayPerms(result []*mydis.Permission) {
+	if len(result) == 0 {
+		fmt.Println("")
+	}
+
+	maxPermLen := 0
+	for _, perm := range result {
+		if len(perm.Key) > maxPermLen {
+			maxPermLen = len(perm.Key) + 1
+		}
+	}
+	for _, perm := range result {
+		key := mydis.BytesToString(perm.Key)
+		if len(perm.RangeEnd) == 1 && perm.RangeEnd[0] == byte(0) {
+			key += "*"
+		}
+		if len(key) < maxPermLen {
+			padding := strings.Repeat(" ", maxPermLen-len(key))
+			key += padding
+		}
+		permName := mydis.Permission_Type_name[int32(perm.PermType)]
+		fmt.Println(key, ":", permName)
 	}
 }
 

@@ -15,6 +15,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/url"
 	"os"
@@ -33,6 +34,7 @@ func main() {
 	server := mydis.NewServer(cfg)
 	err := server.Start(getAddress())
 	if err != nil {
+		fmt.Println(err)
 		log.Fatalln(err)
 	}
 	select {} // block forever

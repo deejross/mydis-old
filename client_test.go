@@ -479,3 +479,83 @@ func TestClientProto(t *testing.T) {
 		t.Error("Unexpected value:", ev)
 	}
 }
+
+func TestClientAuthEnable(t *testing.T) {
+	client.UserAdd("root", "root")
+	client.RoleAdd("root")
+	client.UserGrantRole("root", "root")
+	if err := client.AuthEnable(); err != nil {
+		t.Error(err)
+	}
+}
+
+func TestClientRoleAdd(t *testing.T) {
+	client.Authenticate("root", "root")
+
+	// create reader role and user
+	readerPerms := GetPermission("key*", "READ")
+	if err := client.RoleAdd("reader"); err != nil {
+		t.Error(err)
+	}
+	if err := client.RoleGrantPermission("reader", readerPerms); err != nil {
+		t.Error(err)
+	}
+	client.UserAdd("reader", "reader")
+	if err := client.UserGrantRole("reader", "reader"); err != nil {
+		t.Error(err)
+	}
+
+	// create writer role and user
+	writerPerms := GetPermission("key*", "READWRITE")
+	if err := client.RoleAdd("writer"); err != nil {
+		t.Error(err)
+	}
+	if err := client.RoleGrantPermission("writer", writerPerms); err != nil {
+		t.Error(err)
+	}
+	client.UserAdd("writer", "writer")
+	if err := client.UserGrantRole("writer", "writer"); err != nil {
+		t.Error(err)
+	}
+}
+
+func TestClientAuthAccess(t *testing.T) {
+	// test writer
+	client.Authenticate("writer", "writer")
+	if err := client.Set("key5", "val5"); err != nil {
+		t.Error(err)
+	}
+	if err := client.Get("key5").Error(); err != nil {
+		t.Error(err)
+	}
+	if err := client.Set("something else", "val"); err == nil {
+		t.Error("Expected an auth error")
+	}
+
+	// test reader
+	client.Authenticate("reader", "reader")
+	if err := client.Get("key5").Error(); err != nil {
+		t.Error(err)
+	}
+	if err := client.Get("something else").Error(); err == nil {
+		t.Error("Expected an auth error")
+	}
+	if err := client.Set("key5", "val"); err == nil {
+		t.Error("Expected an auth error")
+	}
+}
+
+func TestClientAuthDisable(t *testing.T) {
+	client.Authenticate("root", "root")
+
+	client.UserDelete("reader")
+	client.UserDelete("writer")
+	client.RoleDelete("reader")
+	client.RoleDelete("writer")
+	if err := client.AuthDisable(); err != nil {
+		t.Error(err)
+	}
+	client.UserDelete("root")
+	client.RoleDelete("root")
+	client.LogOut()
+}

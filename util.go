@@ -23,6 +23,8 @@ import (
 
 	"net"
 
+	"strings"
+
 	"github.com/coreos/etcd/embed"
 	pb "github.com/coreos/etcd/etcdserver/etcdserverpb"
 	"github.com/coreos/etcd/mvcc/mvccpb"
@@ -421,6 +423,32 @@ func getPrefix(key string) []byte {
 		}
 	}
 	return ZeroByte
+}
+
+// GetKeyPrefix returns the actual rangeStart and rangeEnd for keys that end with '*'.
+func GetKeyPrefix(key string) (bkey []byte, rangEnd []byte) {
+	if strings.HasSuffix(key, "*") {
+		newKey := strings.TrimSuffix(key, "*")
+		rangEnd = getPrefix(newKey)
+		bkey = StringToBytes(newKey)
+		return
+	}
+	return StringToBytes(key), ZeroByte
+}
+
+// GetPermission returns a new Permission object for the given information or nil if permName unrecognized.
+func GetPermission(key string, permName string) *Permission {
+	bkey, rangeEnd := GetKeyPrefix(key)
+	permType, ok := Permission_Type_value[strings.ToUpper(strings.TrimSpace(permName))]
+	if !ok {
+		return nil
+	}
+
+	return &Permission{
+		Key:      bkey,
+		RangeEnd: rangeEnd,
+		PermType: Permission_Type(permType),
+	}
 }
 
 func enforceListLimit(lst *List) {

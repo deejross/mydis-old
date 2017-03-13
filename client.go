@@ -80,19 +80,20 @@ func NewClientConfig(address string) ClientConfig {
 
 // Client object.
 type Client struct {
-	config   ClientConfig
-	ctx      context.Context
-	closeCh  chan struct{}
-	closing  bool
-	reqCh    chan *WatchRequest
-	resCh    chan struct{}
-	socket   *grpc.ClientConn
-	stream   Mydis_WatchClient
-	mc       MydisClient
-	lock     sync.RWMutex
-	newID    int64
-	watching map[string]struct{}
-	watchers map[int64]chan *Event
+	authToken string
+	config    ClientConfig
+	ctx       context.Context
+	closeCh   chan struct{}
+	closing   bool
+	reqCh     chan *WatchRequest
+	resCh     chan struct{}
+	socket    *grpc.ClientConn
+	stream    Mydis_WatchClient
+	mc        MydisClient
+	lock      sync.RWMutex
+	newID     int64
+	watching  map[string]struct{}
+	watchers  map[int64]chan *Event
 }
 
 // NewClient returns a new Client object.
@@ -660,7 +661,27 @@ func (c *Client) AuthDisable() error {
 // Authenticate processes an authenticate request.
 func (c *Client) Authenticate(username, password string) (string, error) {
 	resp, err := c.mc.Authenticate(c.ctx, &AuthenticateRequest{Name: username, Password: password})
+	if err != nil {
+		return "", err
+	}
+	c.authToken = resp.Token
+	md, ok := metadata.FromContext(c.ctx)
+	if !ok {
+		md = metadata.MD{}
+	}
+	md["token"] = []string{c.authToken}
+	c.ctx = metadata.NewContext(c.ctx, md)
 	return resp.Token, err
+}
+
+// LogOut removes the cached authentication token, reverting the client to pre-Authenticate state.
+func (c *Client) LogOut() {
+	md, ok := metadata.FromContext(c.ctx)
+	if !ok {
+		md = metadata.MD{}
+	}
+	delete(md, "token")
+	c.ctx = metadata.NewContext(c.ctx, md)
 }
 
 // UserAdd adds a new user.
@@ -672,12 +693,18 @@ func (c *Client) UserAdd(username, password string) error {
 // UserGet gets detailed user information.
 func (c *Client) UserGet(username string) ([]string, error) {
 	resp, err := c.mc.UserGet(c.ctx, &AuthUserGetRequest{Name: username})
+	if err != nil {
+		return nil, err
+	}
 	return resp.Roles, err
 }
 
 // UserList gets a list of all users.
 func (c *Client) UserList() ([]string, error) {
 	resp, err := c.mc.UserList(c.ctx, &AuthUserListRequest{})
+	if err != nil {
+		return nil, err
+	}
 	return resp.Users, err
 }
 
@@ -714,12 +741,18 @@ func (c *Client) RoleAdd(role string) error {
 // RoleGet gets detailed role information.
 func (c *Client) RoleGet(role string) ([]*Permission, error) {
 	resp, err := c.mc.RoleGet(c.ctx, &AuthRoleGetRequest{Role: role})
+	if err != nil {
+		return nil, err
+	}
 	return resp.Perm, err
 }
 
 // RoleList gets a list of all roles.
 func (c *Client) RoleList() ([]string, error) {
 	resp, err := c.mc.RoleList(c.ctx, &AuthRoleListRequest{})
+	if err != nil {
+		return nil, err
+	}
 	return resp.Roles, err
 }
 
