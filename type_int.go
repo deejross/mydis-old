@@ -30,7 +30,7 @@ func (s *Server) GetInt(ctx context.Context, key *Key) (*IntValue, error) {
 	}
 
 	iv := &IntValue{}
-	if err := proto.Unmarshal(bv.Value, iv); strings.HasPrefix(err.Error(), "proto: can't skip unknown wire type") {
+	if err := proto.Unmarshal(bv.Value, iv); err != nil && strings.HasPrefix(err.Error(), "proto: can't skip unknown wire type") {
 		return nil, ErrTypeMismatch
 	} else if err != nil {
 		return nil, err

@@ -36,7 +36,7 @@ func (s *Server) GetHash(ctx context.Context, key *Key) (*Hash, error) {
 		return nil, err
 	}
 	h := &Hash{}
-	if err := proto.Unmarshal(res.Value, h); strings.HasPrefix(err.Error(), "proto: can't skip unknown wire type") {
+	if err := proto.Unmarshal(res.Value, h); err != nil && strings.HasPrefix(err.Error(), "proto: can't skip unknown wire type") {
 		return nil, ErrTypeMismatch
 	} else if err != nil {
 		return nil, err

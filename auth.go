@@ -23,6 +23,9 @@ import (
 // AuthEnable enabled authentication.
 func (s *Server) AuthEnable(ctx context.Context, req *AuthEnableRequest) (*AuthEnableResponse, error) {
 	resp, err := s.cache.Server.AuthEnable(ctx, &etcdserverpb.AuthEnableRequest{})
+	if err != nil {
+		return &AuthEnableResponse{}, err
+	}
 	return &AuthEnableResponse{
 		Header: s.convertHeader(resp.Header),
 	}, err
@@ -31,6 +34,9 @@ func (s *Server) AuthEnable(ctx context.Context, req *AuthEnableRequest) (*AuthE
 // AuthDisable disables authentication.
 func (s *Server) AuthDisable(ctx context.Context, req *AuthDisableRequest) (*AuthDisableResponse, error) {
 	resp, err := s.cache.Server.AuthDisable(ctx, &etcdserverpb.AuthDisableRequest{})
+	if err != nil {
+		return &AuthDisableResponse{}, err
+	}
 	return &AuthDisableResponse{
 		Header: s.convertHeader(resp.Header),
 	}, err
@@ -39,6 +45,9 @@ func (s *Server) AuthDisable(ctx context.Context, req *AuthDisableRequest) (*Aut
 // Authenticate processes an authenticate request.
 func (s *Server) Authenticate(ctx context.Context, req *AuthenticateRequest) (*AuthenticateResponse, error) {
 	resp, err := s.cache.Server.Authenticate(ctx, &etcdserverpb.AuthenticateRequest{Name: req.Name, Password: req.Password})
+	if err != nil {
+		return &AuthenticateResponse{}, err
+	}
 	return &AuthenticateResponse{
 		Header: s.convertHeader(resp.Header),
 		Token:  resp.Token,
@@ -48,6 +57,9 @@ func (s *Server) Authenticate(ctx context.Context, req *AuthenticateRequest) (*A
 // UserAdd adds a new user.
 func (s *Server) UserAdd(ctx context.Context, req *AuthUserAddRequest) (*AuthUserAddResponse, error) {
 	resp, err := s.cache.Server.UserAdd(ctx, &etcdserverpb.AuthUserAddRequest{Name: req.Name, Password: req.Password})
+	if err != nil {
+		return &AuthUserAddResponse{}, err
+	}
 	return &AuthUserAddResponse{
 		Header: s.convertHeader(resp.Header),
 	}, err
@@ -56,6 +68,9 @@ func (s *Server) UserAdd(ctx context.Context, req *AuthUserAddRequest) (*AuthUse
 // UserGet gets detailed information for a user.
 func (s *Server) UserGet(ctx context.Context, req *AuthUserGetRequest) (*AuthUserGetResponse, error) {
 	resp, err := s.cache.Server.UserGet(ctx, &etcdserverpb.AuthUserGetRequest{Name: req.Name})
+	if err != nil {
+		return &AuthUserGetResponse{}, err
+	}
 	return &AuthUserGetResponse{
 		Header: s.convertHeader(resp.Header),
 		Roles:  resp.Roles,
@@ -65,6 +80,10 @@ func (s *Server) UserGet(ctx context.Context, req *AuthUserGetRequest) (*AuthUse
 // UserList gets a list of all users.
 func (s *Server) UserList(ctx context.Context, req *AuthUserListRequest) (*AuthUserListResponse, error) {
 	resp, err := s.cache.Server.UserList(ctx, &etcdserverpb.AuthUserListRequest{})
+	if err != nil {
+		return &AuthUserListResponse{}, err
+	}
+
 	return &AuthUserListResponse{
 		Header: s.convertHeader(resp.Header),
 		Users:  resp.Users,
@@ -74,6 +93,9 @@ func (s *Server) UserList(ctx context.Context, req *AuthUserListRequest) (*AuthU
 // UserDelete deletes a specified user.
 func (s *Server) UserDelete(ctx context.Context, req *AuthUserDeleteRequest) (*AuthUserDeleteResponse, error) {
 	resp, err := s.cache.Server.UserDelete(ctx, &etcdserverpb.AuthUserDeleteRequest{Name: req.Name})
+	if err != nil {
+		return &AuthUserDeleteResponse{}, err
+	}
 	return &AuthUserDeleteResponse{
 		Header: s.convertHeader(resp.Header),
 	}, err
@@ -82,6 +104,9 @@ func (s *Server) UserDelete(ctx context.Context, req *AuthUserDeleteRequest) (*A
 // UserChangePassword changes the password of a specified user.
 func (s *Server) UserChangePassword(ctx context.Context, req *AuthUserChangePasswordRequest) (*AuthUserChangePasswordResponse, error) {
 	resp, err := s.cache.Server.UserChangePassword(ctx, &etcdserverpb.AuthUserChangePasswordRequest{Name: req.Name, Password: req.Password})
+	if err != nil {
+		return &AuthUserChangePasswordResponse{}, err
+	}
 	return &AuthUserChangePasswordResponse{
 		Header: s.convertHeader(resp.Header),
 	}, err
@@ -90,6 +115,9 @@ func (s *Server) UserChangePassword(ctx context.Context, req *AuthUserChangePass
 // UserGrantRole grants a role to a specified user.
 func (s *Server) UserGrantRole(ctx context.Context, req *AuthUserGrantRoleRequest) (*AuthUserGrantRoleResponse, error) {
 	resp, err := s.cache.Server.UserGrantRole(ctx, &etcdserverpb.AuthUserGrantRoleRequest{Role: req.Role, User: req.User})
+	if err != nil {
+		return &AuthUserGrantRoleResponse{}, err
+	}
 	return &AuthUserGrantRoleResponse{
 		Header: s.convertHeader(resp.Header),
 	}, err
@@ -98,6 +126,9 @@ func (s *Server) UserGrantRole(ctx context.Context, req *AuthUserGrantRoleReques
 // UserRevokeRole revokes a role from a specified user.
 func (s *Server) UserRevokeRole(ctx context.Context, req *AuthUserRevokeRoleRequest) (*AuthUserRevokeRoleResponse, error) {
 	resp, err := s.cache.Server.UserRevokeRole(ctx, &etcdserverpb.AuthUserRevokeRoleRequest{Name: req.Name, Role: req.Role})
+	if err != nil {
+		return &AuthUserRevokeRoleResponse{}, err
+	}
 	return &AuthUserRevokeRoleResponse{
 		Header: s.convertHeader(resp.Header),
 	}, err
@@ -106,6 +137,9 @@ func (s *Server) UserRevokeRole(ctx context.Context, req *AuthUserRevokeRoleRequ
 // RoleAdd adds a new role.
 func (s *Server) RoleAdd(ctx context.Context, req *AuthRoleAddRequest) (*AuthRoleAddResponse, error) {
 	resp, err := s.cache.Server.RoleAdd(ctx, &etcdserverpb.AuthRoleAddRequest{Name: req.Name})
+	if err != nil {
+		return &AuthRoleAddResponse{}, err
+	}
 	return &AuthRoleAddResponse{
 		Header: s.convertHeader(resp.Header),
 	}, err
@@ -114,6 +148,9 @@ func (s *Server) RoleAdd(ctx context.Context, req *AuthRoleAddRequest) (*AuthRol
 // RoleGet gets detailed role information.
 func (s *Server) RoleGet(ctx context.Context, req *AuthRoleGetRequest) (*AuthRoleGetResponse, error) {
 	resp, err := s.cache.Server.RoleGet(ctx, &etcdserverpb.AuthRoleGetRequest{Role: req.Role})
+	if err != nil {
+		return &AuthRoleGetResponse{}, err
+	}
 	return &AuthRoleGetResponse{
 		Header: s.convertHeader(resp.Header),
 		Perm:   s.convertPermissions(resp.Perm),
@@ -123,6 +160,9 @@ func (s *Server) RoleGet(ctx context.Context, req *AuthRoleGetRequest) (*AuthRol
 // RoleList gets a list of all rolls.
 func (s *Server) RoleList(ctx context.Context, req *AuthRoleListRequest) (*AuthRoleListResponse, error) {
 	resp, err := s.cache.Server.RoleList(ctx, &etcdserverpb.AuthRoleListRequest{})
+	if err != nil {
+		return &AuthRoleListResponse{}, err
+	}
 	return &AuthRoleListResponse{
 		Header: s.convertHeader(resp.Header),
 		Roles:  resp.Roles,
@@ -132,6 +172,9 @@ func (s *Server) RoleList(ctx context.Context, req *AuthRoleListRequest) (*AuthR
 // RoleDelete deletes a specified role.
 func (s *Server) RoleDelete(ctx context.Context, req *AuthRoleDeleteRequest) (*AuthRoleDeleteResponse, error) {
 	resp, err := s.cache.Server.RoleDelete(ctx, &etcdserverpb.AuthRoleDeleteRequest{Role: req.Role})
+	if err != nil {
+		return &AuthRoleDeleteResponse{}, err
+	}
 	return &AuthRoleDeleteResponse{
 		Header: s.convertHeader(resp.Header),
 	}, err
@@ -140,6 +183,9 @@ func (s *Server) RoleDelete(ctx context.Context, req *AuthRoleDeleteRequest) (*A
 // RoleGrantPermission grants a permission of a specified key or range to a specified role.
 func (s *Server) RoleGrantPermission(ctx context.Context, req *AuthRoleGrantPermissionRequest) (*AuthRoleGrantPermissionResponse, error) {
 	resp, err := s.cache.Server.RoleGrantPermission(ctx, &etcdserverpb.AuthRoleGrantPermissionRequest{Name: req.Name, Perm: s.convertPermission(req.Perm)})
+	if err != nil {
+		return &AuthRoleGrantPermissionResponse{}, err
+	}
 	return &AuthRoleGrantPermissionResponse{
 		Header: s.convertHeader(resp.Header),
 	}, err
@@ -148,12 +194,19 @@ func (s *Server) RoleGrantPermission(ctx context.Context, req *AuthRoleGrantPerm
 // RoleRevokePermission revokes a permission of a specified key or range from a specified role.
 func (s *Server) RoleRevokePermission(ctx context.Context, req *AuthRoleRevokePermissionRequest) (*AuthRoleRevokePermissionResponse, error) {
 	resp, err := s.cache.Server.RoleRevokePermission(ctx, &etcdserverpb.AuthRoleRevokePermissionRequest{Key: req.Key, RangeEnd: req.RangeEnd, Role: req.Role})
+	if err != nil {
+		return &AuthRoleRevokePermissionResponse{}, err
+	}
 	return &AuthRoleRevokePermissionResponse{
 		Header: s.convertHeader(resp.Header),
 	}, err
 }
 
 func (s *Server) convertHeader(h *etcdserverpb.ResponseHeader) *ResponseHeader {
+	if h == nil {
+		return &ResponseHeader{}
+	}
+
 	return &ResponseHeader{
 		ClusterId: h.ClusterId,
 		MemberId:  h.MemberId,
@@ -171,6 +224,10 @@ func (s *Server) convertPermission(p *Permission) *authpb.Permission {
 }
 
 func (s *Server) convertPermissions(p []*authpb.Permission) []*Permission {
+	if p == nil {
+		return []*Permission{}
+	}
+
 	perms := make([]*Permission, len(p))
 	for i, perm := range p {
 		perms[i] = &Permission{

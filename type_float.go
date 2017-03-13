@@ -30,7 +30,7 @@ func (s *Server) GetFloat(ctx context.Context, key *Key) (*FloatValue, error) {
 	}
 
 	fv := &FloatValue{}
-	if err := proto.Unmarshal(bv.Value, fv); strings.HasPrefix(err.Error(), "proto: can't skip unknown wire type") {
+	if err := proto.Unmarshal(bv.Value, fv); err != nil && strings.HasPrefix(err.Error(), "proto: can't skip unknown wire type") {
 		return nil, ErrTypeMismatch
 	} else if err != nil {
 		return nil, err
