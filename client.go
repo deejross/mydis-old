@@ -645,6 +645,102 @@ func (c *Client) Unwatch(key string, prefix bool) {
 	<-c.resCh
 }
 
+// AuthEnable enables authentication.
+func (c *Client) AuthEnable() error {
+	_, err := c.mc.AuthEnable(c.ctx, &AuthEnableRequest{})
+	return err
+}
+
+// AuthDisable disables authentication.
+func (c *Client) AuthDisable() error {
+	_, err := c.mc.AuthDisable(c.ctx, &AuthDisableRequest{})
+	return err
+}
+
+// Authenticate processes an authenticate request.
+func (c *Client) Authenticate(username, password string) (string, error) {
+	resp, err := c.mc.Authenticate(c.ctx, &AuthenticateRequest{Name: username, Password: password})
+	return resp.Token, err
+}
+
+// UserAdd adds a new user.
+func (c *Client) UserAdd(username, password string) error {
+	_, err := c.mc.UserAdd(c.ctx, &AuthUserAddRequest{Name: username, Password: password})
+	return err
+}
+
+// UserGet gets detailed user information.
+func (c *Client) UserGet(username string) ([]string, error) {
+	resp, err := c.mc.UserGet(c.ctx, &AuthUserGetRequest{Name: username})
+	return resp.Roles, err
+}
+
+// UserList gets a list of all users.
+func (c *Client) UserList() ([]string, error) {
+	resp, err := c.mc.UserList(c.ctx, &AuthUserListRequest{})
+	return resp.Users, err
+}
+
+// UserDelete deletes a specified user.
+func (c *Client) UserDelete(username string) error {
+	_, err := c.mc.UserDelete(c.ctx, &AuthUserDeleteRequest{Name: username})
+	return err
+}
+
+// UserChangePassword changes the password of the specified user.
+func (c *Client) UserChangePassword(username, password string) error {
+	_, err := c.mc.UserChangePassword(c.ctx, &AuthUserChangePasswordRequest{Name: username, Password: password})
+	return err
+}
+
+// UserGrantRole grants a role to a specified user.
+func (c *Client) UserGrantRole(username, role string) error {
+	_, err := c.mc.UserGrantRole(c.ctx, &AuthUserGrantRoleRequest{User: username, Role: role})
+	return err
+}
+
+// UserRevokeRole revokes a role from a specified user.
+func (c *Client) UserRevokeRole(username, role string) error {
+	_, err := c.mc.UserRevokeRole(c.ctx, &AuthUserRevokeRoleRequest{Name: username, Role: role})
+	return err
+}
+
+// RoleAdd adds a new role.
+func (c *Client) RoleAdd(role string) error {
+	_, err := c.mc.RoleAdd(c.ctx, &AuthRoleAddRequest{Name: role})
+	return err
+}
+
+// RoleGet gets detailed role information.
+func (c *Client) RoleGet(role string) ([]*Permission, error) {
+	resp, err := c.mc.RoleGet(c.ctx, &AuthRoleGetRequest{Role: role})
+	return resp.Perm, err
+}
+
+// RoleList gets a list of all roles.
+func (c *Client) RoleList() ([]string, error) {
+	resp, err := c.mc.RoleList(c.ctx, &AuthRoleListRequest{})
+	return resp.Roles, err
+}
+
+// RoleDelete deletes a specified role.
+func (c *Client) RoleDelete(role string) error {
+	_, err := c.mc.RoleDelete(c.ctx, &AuthRoleDeleteRequest{Role: role})
+	return err
+}
+
+// RoleGrantPermission grants a permission of a specified key or range to a specified role.
+func (c *Client) RoleGrantPermission(role string, perm *Permission) error {
+	_, err := c.mc.RoleGrantPermission(c.ctx, &AuthRoleGrantPermissionRequest{Name: role, Perm: perm})
+	return err
+}
+
+// RoleRevokePermission revokes a key or range permission of a specified key.
+func (c *Client) RoleRevokePermission(role string, perm *Permission) error {
+	_, err := c.mc.RoleRevokePermission(c.ctx, &AuthRoleRevokePermissionRequest{Key: string(perm.Key), RangeEnd: string(perm.RangeEnd), Role: role})
+	return err
+}
+
 func (c *Client) backgroundProcess() {
 	defer func() {
 		c.lock.RLock()

@@ -52,6 +52,22 @@ var help = map[string][]string{
 	"SETLOCKTIMEOUT":  []string{"SETLOCKTIMEOUT seconds", "Set the default lock timeout"},
 	"WATCH":           []string{"WATCH key", "Watch for changes to a key"},
 	"UNWATCH":         []string{"UNWATCH key", "Unwatch for changes to a key"},
+	"AUTHENABLE":      []string{"AUTHENABLE", "Enable authentication"},
+	"AUTHDISABLE":     []string{"AUTHDISABLE", "Disable authentication"},
+	"AUTHENTICATE":    []string{"AUTHENTICATE username password", "Authenticate a user"},
+	"USERADD":         []string{"USERADD username password", "Add a new user"},
+	"USERGET":         []string{"USERGET username", "Get detailed user information"},
+	"USERLIST":        []string{"USERLIST", "Get list of all users"},
+	"USERDELETE":      []string{"USERDELETE username", "Delete a specific user"},
+	"USERCHANGEPASS":  []string{"USERCHANGEPASS username password", "Change the password for a user"},
+	"USERGRANTROLE":   []string{"USERGRANTROLE username role", "Grant a role to a user"},
+	"USERREVOKEROLE":  []string{"USERREVOKEROLE username role", "Revoke a role from a user"},
+	"ROLEADD":         []string{"ROLEADD role", "Add a new role"},
+	"ROLEGET":         []string{"ROLEGET role", "Get detailed information for a role"},
+	"ROLELIST":        []string{"ROLELIST", "REturns a list of roles"},
+	"ROLEDELETE":      []string{"ROLEDELETE role", "Delete a role"},
+	"ROLEGRANTPERM":   []string{"ROLEGRANTPERM role key keyEnd"},
+	"ROLEREVOKEPERM":  []string{"ROLEREVOKEPERM role key keyEnd"},
 }
 
 var closeCh = make(chan struct{})
@@ -435,6 +451,18 @@ func command(client *mydis.Client, cmd string, args []string) error {
 			return nil
 		}
 		return errNotEnoughArgs
+	} else if cmd == "AUTHENABLE" {
+		return client.AuthEnable()
+	} else if cmd == "AUTHDISABLE" {
+		return client.AuthDisable()
+	} else if cmd == "AUTHENTICATE" {
+		if len(args) >= 2 {
+			token, err := client.Authenticate(args[0], args[1])
+			if err != nil {
+				return err
+			}
+			fmt.Println(token)
+		}
 	}
 	return errors.New("Unknown command: " + cmd)
 }
