@@ -26,7 +26,7 @@ Mydis builds upon the solid Etcd framework to provide more data types and featur
 
 Versioning
 ----------
-Versioning is done using [SemVer][http://semver.org/]. Release are tagged with the version number. It is highly recommended that only tagged releases are used. The master branch is constantly in a state of flux and builds may break. Using a tagged release ensures that a stable version of Mydis is being used.
+Versioning is done using [SemVer](http://semver.org/). Release are tagged with the version number. It is highly recommended that only tagged releases are used. The master branch is constantly in a state of flux and builds may break. Using a tagged release ensures that a stable version of Mydis is being used.
 
 Configuration
 -------------
