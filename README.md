@@ -197,6 +197,31 @@ Using the event handling feature, you can be notified when a key changes.
 - `NewEventChannel()`: Returns a new Event channel.
 - `CloseEventChannel(id)`: Closes an Event channel.
 
+Authentication
+--------------
+Authentication is handled entirely by Etcd. All auth commands are proxied to Etcd for processing. Once authentication is enabled, the functions below (with the exepction of `Authenticate` and `LogOut`) will require a user with the `root` role. Etcd requires a `root` user and role to be created before authentication can be enabled. Any user can be assigned the `root` role afterwards, but the `root` user must remain for recovery purposes.
+
+**Functions**
+- `AuthEnable()`: Enable authentication (must have `root` user and role created).
+- `AuthDisable()`: Disable authentication.
+- `Authenticate(username, password)`: Authenticate as the given user.
+- `LogOut()`: Client-only method, clears the authentication token set by the call to `Authenticate`.
+- `UserAdd(username, password)`: Creates a new user.
+- `UserGet(username)`: Get list of roles for the given user.
+- `UserList()`: Get list of all usernames.
+- `UserDelete(username)`: Delete a user.
+- `UserChangePassword(username, password)`: Change a user's password.
+- `UserGrantRole(username, role)`: Grant the user a role.
+- `UserRevokeRole(username, role)`: Revoke a role from the user.
+- `RoleAdd(role)`: Create a new role.
+- `RoleGet(role)`: Get list of permissions for the given role.
+- `RoleList()`: Get list of all roles.
+- `RoleDelete(role)`: Delete a role.
+- `RoleGrantPermission(role, perm)`: Grant the role a permission.
+- `RoleRevokePermission(role, perm)`: Revoke a permission from a role.
+
+See [Etcd's API documentation](https://coreos.com/etcd/docs/latest/dev-guide/api_reference_v3.html) or the [Authentication Guide](https://coreos.com/etcd/docs/latest/v2/authentication.html) for version 2. Even though the guide is for an older version of Etcd, the concepts and configuration haven't changed in version 3.
+
 Usage
 -----
 **Server**
