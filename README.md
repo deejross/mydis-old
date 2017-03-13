@@ -24,6 +24,10 @@ Under the hood, the production-ready [Etcd](https://etcd.io/) system is used. Th
 In an effort to keep the focus on reliability and consistency, the authors of Etcd decided to allow only a single data type for both keys and values: byte arrays.
 Mydis builds upon the solid Etcd framework to provide more data types and features such as atomic list operations and distributed locks.
 
+Versioning
+----------
+Versioning is done using [SemVer][http://semver.org/]. Release are tagged with the version number. It is highly recommended that only tagged releases are used. The master branch is constantly in a state of flux and builds may break. Using a tagged release ensures that a stable version of Mydis is being used.
+
 Configuration
 -------------
 Without any configuration, Mydis starts up as a single node cluster on port 8383 with a storage limit of 2GB. This can be changed by creating a YAML configuration file named `mydis.conf` in either `/etc/mydis` or in the same directory as the executable.
