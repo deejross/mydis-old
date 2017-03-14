@@ -484,7 +484,7 @@ func (c *Client) ListPopRight(key string) Value {
 	return NewValue(bv.Value)
 }
 
-// ListPopRightBlock returns and removes the first item in a list, or waits the given number of seconds for a value, timeout of zero waits forever.
+// ListPopRightBlock returns and removes the last item in a list, or waits the given number of seconds for a value, timeout of zero waits forever.
 func (c *Client) ListPopRightBlock(key string, timeout int64) Value {
 	bv, err := c.mc.ListPopRight(c.ctx, &Key{Key: key, Block: true, BlockTimeout: timeout})
 	if err != nil {

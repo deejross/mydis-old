@@ -36,7 +36,9 @@ var help = map[string][]string{
 	"LISTINSERT":      []string{"LISTINSERT key index value", "Insert a new item to a list at the given index"},
 	"LISTAPPEND":      []string{"LISTAPPEND key value", "Insert a new item at the end of the list"},
 	"LISTPOPLEFT":     []string{"LISTPOPLEFT key", "Returns and removes the first item in a list"},
+	"LISTPOPLEFTBLK":  []string{"LISTPOPLEFTBLK key seconds", "Returns and removes the first item in a list or waits the given seconds for a new value"},
 	"LISTPOPRIGHT":    []string{"LISTPOPRIGHT key", "Returns and removes the last item in a list"},
+	"LISTPOPRIGHTBLK": []string{"LISTPOPRIGHTBLK key seconds", "Returns and removes the last item in a list or waits the given seconds for a new value"},
 	"LISTHAS":         []string{"LISTHAS key value", "Determines if a list contains an item"},
 	"LISTDELETE":      []string{"LISTDELETE key index", "Removes an item from a list by index"},
 	"LISTDELETEITEM":  []string{"LISTDELETEITEM key value", "Removes first occurance of value from a list, returns index of removed item or -1 for not found"},
@@ -340,9 +342,37 @@ func command(client *mydis.Client, cmd string, args []string) error {
 			return err
 		}
 		return errNotEnoughArgs
+	} else if cmd == "LISTPOPLEFTBLK" {
+		if len(args) >= 2 {
+			seconds, err := strconv.ParseInt(args[1], 10, 64)
+			if err != nil {
+				return err
+			}
+			s, err := client.ListPopLeftBlock(args[0], seconds).String()
+			if err != nil {
+				return err
+			}
+			fmt.Println(s)
+			return err
+		}
+		return errNotEnoughArgs
 	} else if cmd == "LISTPOPRIGHT" {
 		if len(args) >= 1 {
 			s, err := client.ListPopRight(args[0]).String()
+			if err != nil {
+				return err
+			}
+			fmt.Println(s)
+			return err
+		}
+		return errNotEnoughArgs
+	} else if cmd == "LISTPOPRIGHTBLK" {
+		if len(args) >= 2 {
+			seconds, err := strconv.ParseInt(args[1], 10, 64)
+			if err != nil {
+				return err
+			}
+			s, err := client.ListPopRightBlock(args[0], seconds).String()
 			if err != nil {
 				return err
 			}

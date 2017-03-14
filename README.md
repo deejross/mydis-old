@@ -4,7 +4,7 @@
 [![Build Status](https://semaphoreci.com/api/v1/deejross/mydis/branches/master/shields_badge.svg)](https://semaphoreci.com/deejross/mydis)
 [![GoDoc](https://godoc.org/github.com/deejross/mydis?status.svg)](https://godoc.org/github.com/deejross/mydis)
 
-Version: 0.5.0
+Version: 1.0.0
 
 Introduction
 ------------

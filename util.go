@@ -41,7 +41,7 @@ var suffixForLocks = "*_MYDIS_LOCK"
 var ZeroByte = []byte{0}
 
 // VERSION of Mydis
-var VERSION = "0.5.0"
+var VERSION = "1.0.0"
 
 // Value object.
 type Value struct {
