@@ -334,6 +334,21 @@ func TestClientPopLeft(t *testing.T) {
 	}
 }
 
+func TestClientListPopLeftBlock(t *testing.T) {
+	go func() {
+		time.Sleep(100 * time.Millisecond)
+		if err := client.ListAppend("leftBlock", "test"); err != nil {
+			t.Error(err)
+		}
+	}()
+
+	if s, err := client.ListPopLeftBlock("leftBlock", 2).String(); err != nil {
+		t.Error(err)
+	} else if s != "test" {
+		t.Error("Unexpected value:", s)
+	}
+}
+
 func TestClientListPopRight(t *testing.T) {
 	if s, err := client.ListPopRight("list1").String(); err != nil {
 		t.Error(err)
@@ -345,6 +360,21 @@ func TestClientListPopRight(t *testing.T) {
 		t.Error(err)
 	} else if i != 1 {
 		t.Error("Unexpected value:", i)
+	}
+}
+
+func TestClientListPopRightBlock(t *testing.T) {
+	go func() {
+		time.Sleep(100 * time.Millisecond)
+		if err := client.ListAppend("leftBlock", "test"); err != nil {
+			t.Error(err)
+		}
+	}()
+
+	if s, err := client.ListPopRightBlock("leftBlock", 2).String(); err != nil {
+		t.Error(err)
+	} else if s != "test" {
+		t.Error("Unexpected value:", s)
 	}
 }
 

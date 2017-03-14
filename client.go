@@ -47,6 +47,7 @@ var knownErrors = map[string]error{
 	"etcdserver: Index out of range": ErrListIndexOutOfRange,
 	"Hash field does not exist":      ErrHashFieldNotFound,
 	"Type mismatch":                  ErrTypeMismatch,
+	"Invalid key name":               ErrInvalidKey,
 }
 
 func normalizeError(err error) error {
@@ -463,9 +464,29 @@ func (c *Client) ListPopLeft(key string) Value {
 	return NewValue(bv.Value)
 }
 
+// ListPopLeftBlock returns and removes the first item in a list, or waits the given number of seconds for a value, timeout of zero waits forever.
+func (c *Client) ListPopLeftBlock(key string, timeout int64) Value {
+	bv, err := c.mc.ListPopLeft(c.ctx, &Key{Key: key, Block: true, BlockTimeout: timeout})
+	if err != nil {
+		err = normalizeError(err)
+		return NewValue(err)
+	}
+	return NewValue(bv.Value)
+}
+
 // ListPopRight returns and removes the last item in a list.
 func (c *Client) ListPopRight(key string) Value {
 	bv, err := c.mc.ListPopRight(c.ctx, &Key{Key: key})
+	if err != nil {
+		err = normalizeError(err)
+		return NewValue(err)
+	}
+	return NewValue(bv.Value)
+}
+
+// ListPopRightBlock returns and removes the first item in a list, or waits the given number of seconds for a value, timeout of zero waits forever.
+func (c *Client) ListPopRightBlock(key string, timeout int64) Value {
+	bv, err := c.mc.ListPopRight(c.ctx, &Key{Key: key, Block: true, BlockTimeout: timeout})
 	if err != nil {
 		err = normalizeError(err)
 		return NewValue(err)
