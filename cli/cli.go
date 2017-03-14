@@ -582,6 +582,7 @@ func command(client *mydis.Client, cmd string, args []string) error {
 			}
 			return client.RoleRevokePermission(role, perm)
 		}
+		return errNotEnoughArgs
 	}
 	return errors.New("Unknown command: " + cmd)
 }
