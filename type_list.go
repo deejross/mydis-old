@@ -18,6 +18,7 @@ import (
 	"bytes"
 	"errors"
 	"strings"
+	"time"
 
 	"github.com/coreos/etcd/etcdserver"
 	"github.com/gogo/protobuf/proto"
@@ -205,8 +206,12 @@ func (s *Server) ListPopLeft(ctx context.Context, key *Key) (*ByteValue, error) 
 		return &ByteValue{}, err
 	}
 
+	block := key.Block
+	key.Block = false
 	lst, err := s.GetList(ctx, key)
-	if err == etcdserver.ErrKeyNotFound {
+	if err == etcdserver.ErrKeyNotFound && block {
+		lst = &List{Value: [][]byte{}}
+	} else if err == etcdserver.ErrKeyNotFound {
 		s.Unlock(ctx, key)
 		return &ByteValue{}, ErrListEmpty
 	} else if err != nil {
@@ -215,7 +220,25 @@ func (s *Server) ListPopLeft(ctx context.Context, key *Key) (*ByteValue, error) 
 	}
 
 	lst.Key = key.Key
-	if len(lst.Value) == 0 {
+	if len(lst.Value) == 0 && block {
+		s.Unlock(ctx, key)
+
+		waited := time.Duration(0)
+		sleep := 10 * time.Millisecond
+
+		for {
+			if res, err := s.ListPopLeft(ctx, key); err == etcdserver.ErrKeyNotFound || err == ErrListEmpty {
+				time.Sleep(sleep)
+				waited += sleep
+				if waited.Seconds() >= float64(key.BlockTimeout) && key.BlockTimeout > 0 {
+					return res, err
+				}
+			} else {
+				return res, err
+			}
+		}
+	} else if len(lst.Value) == 0 {
+		s.Unlock(ctx, key)
 		return &ByteValue{}, ErrListEmpty
 	}
 
@@ -234,8 +257,12 @@ func (s *Server) ListPopRight(ctx context.Context, key *Key) (*ByteValue, error)
 		return &ByteValue{}, err
 	}
 
+	block := key.Block
+	key.Block = false
 	lst, err := s.GetList(ctx, key)
-	if err == etcdserver.ErrKeyNotFound {
+	if err == etcdserver.ErrKeyNotFound && block {
+		lst = &List{Value: [][]byte{}}
+	} else if err == etcdserver.ErrKeyNotFound {
 		s.Unlock(ctx, key)
 		return &ByteValue{}, ErrListEmpty
 	} else if err != nil {
@@ -244,7 +271,26 @@ func (s *Server) ListPopRight(ctx context.Context, key *Key) (*ByteValue, error)
 	}
 
 	lst.Key = key.Key
-	if len(lst.Value) == 0 {
+	if len(lst.Value) == 0 && block {
+		s.Unlock(ctx, key)
+
+		waited := time.Duration(0)
+		sleep := 10 * time.Millisecond
+
+		for {
+			key.Block = false
+			if res, err := s.ListPopRight(ctx, key); err == etcdserver.ErrKeyNotFound || err == ErrListEmpty {
+				time.Sleep(sleep)
+				waited += sleep
+				if waited.Seconds() >= float64(key.BlockTimeout) && key.BlockTimeout > 0 {
+					return res, err
+				}
+			} else {
+				return res, err
+			}
+		}
+	} else if len(lst.Value) == 0 {
+		s.Unlock(ctx, key)
 		return &ByteValue{}, ErrListEmpty
 	}
 

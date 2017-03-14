@@ -16,6 +16,8 @@ package mydis
 
 import "testing"
 import "bytes"
+import "time"
+import "github.com/coreos/etcd/etcdserver"
 
 func TestSet(t *testing.T) {
 	testReset()
@@ -77,6 +79,31 @@ func TestGetWithPrefix(t *testing.T) {
 		t.Error(err)
 	} else if len(bh.Value) < 3 {
 		t.Error("Unexpected response:", bh.Value)
+	}
+}
+
+func TestGetBlocking(t *testing.T) {
+	if _, err := server.Get(ctx, &Key{Key: "key1", Block: true, BlockTimeout: 1}); err != nil {
+		t.Error(err)
+	}
+
+	go func() {
+		time.Sleep(100 * time.Millisecond)
+		if _, err := server.Set(ctx, &ByteValue{Key: "keyBlock", Value: []byte("val")}); err != nil {
+			t.Error(err)
+		}
+	}()
+	if bv, err := server.Get(ctx, &Key{Key: "keyBlock", Block: true, BlockTimeout: 1}); err != nil {
+		t.Error(err)
+	} else if len(bv.Value) != 3 {
+		t.Error("Unexpected response:", bv.Value)
+	}
+}
+
+func TestGetBlockingTimeout(t *testing.T) {
+	server.Delete(ctx, &Key{Key: "keyBlock"})
+	if _, err := server.Get(ctx, &Key{Key: "keyBlock", Block: true, BlockTimeout: 1}); err != etcdserver.ErrKeyNotFound {
+		t.Error("Unexpected response:", err)
 	}
 }
 

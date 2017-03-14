@@ -17,6 +17,7 @@ package mydis
 import (
 	"bytes"
 	"testing"
+	"time"
 )
 
 func TestSetList(t *testing.T) {
@@ -236,5 +237,43 @@ func TestListDeleteItem(t *testing.T) {
 		t.Error(err)
 	} else if iv.Value != -1 {
 		t.Error("Unexpected value:", iv.Value)
+	}
+}
+
+func TestListPopLeftBlocking(t *testing.T) {
+	if _, err := server.Delete(ctx, &Key{Key: "listBlock"}); err != nil {
+		t.Error(err)
+	}
+
+	go func() {
+		time.Sleep(100 * time.Millisecond)
+		if _, err := server.ListAppend(ctx, &ListItem{Key: "listBlock", Value: []byte("test")}); err != nil {
+			t.Error(err)
+		}
+	}()
+
+	if bv, err := server.ListPopLeft(ctx, &Key{Key: "listBlock", Block: true, BlockTimeout: 1}); err != nil {
+		t.Error(err)
+	} else if len(bv.Value) != 4 {
+		t.Error("Unexpected value:", bv.Value)
+	}
+}
+
+func TestListPopRightBlocking(t *testing.T) {
+	if _, err := server.Delete(ctx, &Key{Key: "listBlock"}); err != nil {
+		t.Error(err)
+	}
+
+	go func() {
+		time.Sleep(100 * time.Millisecond)
+		if _, err := server.ListAppend(ctx, &ListItem{Key: "listBlock", Value: []byte("test")}); err != nil {
+			t.Error(err)
+		}
+	}()
+
+	if bv, err := server.ListPopRight(ctx, &Key{Key: "listBlock", Block: true, BlockTimeout: 1}); err != nil {
+		t.Error(err)
+	} else if len(bv.Value) != 4 {
+		t.Error("Unexpected value:", bv.Value)
 	}
 }

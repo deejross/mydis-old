@@ -178,6 +178,8 @@ message Key {
     int64 maxModRevision = 11;
     int64 minCreateRevision = 12;
     int64 maxCreateRevision = 13;
+	bool block = 14;
+	int64 blockTimeout = 15;
 }
 
 // Bool object.

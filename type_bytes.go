@@ -34,12 +34,29 @@ var (
 // Get a byte array from the cache.
 func (s *Server) Get(ctx context.Context, key *Key) (*ByteValue, error) {
 	res, err := s.cache.Server.Range(ctx, getRangeRequestFromKey(key))
+
 	if err != nil {
 		return &ByteValue{}, err
-	}
-	if res.Count > 0 {
+	} else if res.Kvs == nil && key.Block {
+		waited := time.Duration(0)
+		sleep := 10 * time.Millisecond
+
+		for {
+			key.Block = false
+			if res, err := s.Get(ctx, key); err == etcdserver.ErrKeyNotFound {
+				time.Sleep(sleep)
+				waited += sleep
+				if waited.Seconds() >= float64(key.BlockTimeout) && key.BlockTimeout > 0 {
+					return res, err
+				}
+			} else {
+				return res, err
+			}
+		}
+	} else if res.Count > 0 {
 		return &ByteValue{Value: res.Kvs[0].Value}, nil
 	}
+
 	return &ByteValue{}, etcdserver.ErrKeyNotFound
 }
 
