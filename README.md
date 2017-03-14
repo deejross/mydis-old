@@ -160,7 +160,9 @@ Lists are lists of values.
 - `ListInsert(key, index, value)`: Insert an item in a list at the given index, creates new list and inserts item at index zero if key doesn't exist.
 - `ListAppend(key, value)`: Append an item to the end of a list, creates new list if key doesn't exist.
 - `ListPopLeft(key) Value`: Remove and return the first item in a list, returns ErrListEmpty if list is empty.
+- `ListPopLeftBlock(key, seconds) Value`: Remove and return the first item in a list, or wait the given seconds for a new value, setting to zero waits forever.
 - `ListPopRight(key) Value`: Remove and return the last item in a list, returns ErrListEmpty if list is empty.
+- `ListPopRightBlock(key, seconds) Value`: Remove and return the last item in a list, or wait the given seconds for a new value, setting to zero waits forever.
 - `ListDelete(key, index)`: Remove an item from a list by index, returns an error if key or index doesn't exist.
 - `ListDeleteItem(key, value) int64`: Search for and remove the first occurrence of value from the list, returns index of item or -1 for not found.
 - `ListLength(key) int64`: Get the number of items in a list.
@@ -248,6 +250,10 @@ if err != nil {
 Limitations
 -----------
 Etcd limits message sizes to 1.5MB, so values cannot be larger than this. The maximum storage size is configurable up to 8GB.
+
+Help Wanted
+-----------
+If you encounter a bug or have an idea for a feature, please open a GitHub issue. There's still time request a feature for version 1.1!
 
 License
 -------
