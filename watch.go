@@ -15,6 +15,7 @@
 package mydis
 
 import (
+	"strings"
 	"sync"
 
 	"github.com/coreos/etcd/etcdserver"
@@ -162,7 +163,13 @@ func (w *Watcher) backgroundProcess() {
 				if e.PrevKv != nil {
 					ev.Previous = &ByteValue{Key: BytesToString(e.PrevKv.Key), Value: e.PrevKv.Value}
 				}
-				w.eventCh <- ev
+
+				for _, r := range w.watching {
+					key := BytesToString(e.Kv.Key)
+					if r.Key == key || (r.Prefix && strings.HasPrefix(key, r.Key)) {
+						w.eventCh <- ev
+					}
+				}
 			}
 		}
 	}

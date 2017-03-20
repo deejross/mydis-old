@@ -4,7 +4,7 @@
 [![Build Status](https://semaphoreci.com/api/v1/deejross/mydis/branches/master/shields_badge.svg)](https://semaphoreci.com/deejross/mydis)
 [![GoDoc](https://godoc.org/github.com/deejross/mydis?status.svg)](https://godoc.org/github.com/deejross/mydis)
 
-Version: 1.0.0
+Version: 1.1.0
 
 Introduction
 ------------
@@ -92,6 +92,8 @@ Some notes about this configuration:
 - While setting `initial-cluster-token` is optional, it's always a good idea to give each cluster a name.
 
 See Etcd's [clustering guide](https://coreos.com/etcd/docs/latest/op-guide/clustering.html) for more information.
+
+
 
 Server API
 ----------
