@@ -255,7 +255,7 @@ Etcd limits message sizes to 1.5MB, so values cannot be larger than this. The ma
 
 Help Wanted
 -----------
-If you encounter a bug or have an idea for a feature, please open a GitHub issue. There's still time request a feature for version 1.1!
+If you encounter a bug or have an idea for a feature, please open a GitHub issue. There's still time request a feature for version 1.2!
 
 License
 -------
