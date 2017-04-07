@@ -1,4 +1,4 @@
-package: mydis
+package: github.com/deejross/mydis
 import:
 - package: github.com/golang/protobuf
   subpackages:
