@@ -15,9 +15,12 @@
 package mydis
 
 import (
+	"context"
+	"crypto/tls"
 	"errors"
 	"fmt"
 	"log"
+	"net/http"
 	"strings"
 
 	"google.golang.org/grpc"
@@ -27,8 +30,8 @@ import (
 	"time"
 
 	"github.com/coreos/etcd/embed"
-	"github.com/coreos/etcd/pkg/transport"
 	"github.com/coreos/pkg/capnslog"
+	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"google.golang.org/grpc/credentials"
 )
 
@@ -41,11 +44,15 @@ var ErrKeyLocked = errors.New("Key is locked")
 
 // Server object.
 type Server struct {
-	config *embed.Config
-	cache  *embed.Etcd
-	socket net.Listener
-	server *grpc.Server
-	wc     *WatchController
+	config  *embed.Config
+	cache   *embed.Etcd
+	socket  net.Listener
+	server  *grpc.Server
+	gwsock  net.Listener
+	gateway *http.Server
+	gwmux   *runtime.ServeMux
+	tc      *tls.Config
+	wc      *WatchController
 }
 
 // NewServer returns a new Server object.
@@ -55,13 +62,16 @@ func NewServer(config *embed.Config) *Server {
 	}
 
 	s := &Server{
-		config: config,
+		config:  config,
+		gateway: &http.Server{},
+		gwmux:   runtime.NewServeMux(),
 	}
+
 	return s
 }
 
 // Start the server.
-func (s *Server) Start(address string) error {
+func (s *Server) Start(http1, http2 string) error {
 	e, err := embed.StartEtcd(s.config)
 	if err != nil {
 		return err
@@ -70,7 +80,7 @@ func (s *Server) Start(address string) error {
 	s.cache = e
 	s.wc = NewWatchController(s.cache.Server)
 
-	socket, err := net.Listen("tcp", address)
+	socket, err := net.Listen("tcp", http2)
 	if err != nil {
 		return err
 	}
@@ -80,8 +90,18 @@ func (s *Server) Start(address string) error {
 		return err
 	}
 
+	gwsock, err := net.Listen("tcp", http1)
+	if err != nil {
+		return err
+	}
+	s.gwsock = gwsock
+
 	RegisterMydisServer(s.server, s)
-	fmt.Println("Server listening at", address)
+	RegisterMydisHandlerFromEndpoint(context.Background(), s.gwmux, http2, []grpc.DialOption{grpc.WithTransportCredentials(credentials.NewTLS(s.tc))})
+	s.gateway.Addr = http1
+	s.gateway.Handler = WebsocketProxy(s.gwmux)
+
+	fmt.Println("Mydis listening on HTTP/1.1:", http1, "HTTP/2 (gRPC):", http2)
 
 	go func() {
 		err = s.server.Serve(s.socket)
@@ -89,6 +109,13 @@ func (s *Server) Start(address string) error {
 			return
 		}
 		log.Println(err)
+	}()
+
+	go func() {
+		err = s.gateway.Serve(s.gwsock)
+		if err != nil {
+			log.Println(err)
+		}
 	}()
 
 	return nil
@@ -100,23 +127,17 @@ func (s *Server) Close() {
 	s.cache.Close()
 }
 
-func (s *Server) applyTLS() error {
-	tlsInfo, err := generateTLSInfo(s.config)
+func (s *Server) applyTLS() (err error) {
+	s.tc, err = generateTLSInfo(s.config)
 	if err != nil {
 		return err
 	}
 
-	if tlsInfo.Empty() {
+	if s.tc == nil {
 		s.server = grpc.NewServer()
 	} else {
-		tlsConfig, err := tlsInfo.ServerConfig()
-		if err != nil {
-			return err
-		}
-
-		tlsCreds := transport.ShallowCopyTLSConfig(tlsConfig)
-		tlsCreds.InsecureSkipVerify = true
-		creds := grpc.Creds(credentials.NewTLS(tlsCreds))
+		s.tc.InsecureSkipVerify = true
+		creds := grpc.Creds(credentials.NewTLS(s.tc))
 		s.server = grpc.NewServer(creds)
 	}
 

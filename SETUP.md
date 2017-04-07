@@ -8,9 +8,9 @@ Mydis is built using many technologies such as Go, gRPC and others. To use these
 Install Go
 ----------
 To install Go and related tools on macOS, it is recommended to use [Homebrew](https://brew.sh/). You can find installation instructions on their website. Once it's installed, you can continue to follow these steps:
-- `brew install go glide protobuf go-delve/delve/delve`
+- `brew install make go glide protobuf go-delve/delve/delve`
 
-If you already have these packages installed, please update them to the latest version: `brew upgrade go glide protobuf go-delve/delve/delve`.
+If you already have these packages installed, please update them to the latest version: `brew upgrade make go glide protobuf go-delve/delve/delve`.
 
 Next you'll need to setup a workspace. The first thing to do is setup your `$GOPATH`. Find a suitable location for the top-level folder for your Go projects (example: `~/Code/Go`). Create the $GOPATH environment variable in `.bash_profile`:
 - `echo export GOPATH=~/Code/Go >> ~/.bash_profile` (you can replace `~/Code/Go` with a different path if you prefer)
@@ -45,6 +45,10 @@ You will need to download dependencies using `glide` within the `mydis` director
 - `glide install`
 
 **NOTE**: Some users may get some errors using the above command. If this happens, try running it again before submitting a new issue.
+
+Protocol Buffer/gRPC Changes
+----------------------------
+After changing anything in the `mydis.proto` file, run `make` to generate new `mydis.pb.go` and `mydis.pb.gw.go` files.
 
 Done
 ----

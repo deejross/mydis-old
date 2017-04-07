@@ -33,6 +33,7 @@ import (
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/grpclog"
 	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/naming"
 )
 
 var (
@@ -61,9 +62,51 @@ func normalizeError(err error) error {
 	return err
 }
 
+// staticResolver implements both the naming.Resolver and naming.Watcher
+// interfaces. It always returns a single static list then blocks forever
+type staticResolver struct {
+	addresses []*naming.Update
+}
+
+func newStaticResolver(addresses []string) *staticResolver {
+	sr := &staticResolver{}
+	for _, a := range addresses {
+		sr.addresses = append(sr.addresses, &naming.Update{
+			Op:   naming.Add,
+			Addr: a,
+		})
+	}
+	return sr
+}
+
+// Resolve just returns the staticResolver it was called from as it satisfies
+// both the naming.Resolver and naming.Watcher interfaces
+func (sr *staticResolver) Resolve(target string) (naming.Watcher, error) {
+	return sr, nil
+}
+
+// Next is called in a loop by grpc.RoundRobin expecting updates to which addresses are
+// appropriate. Since we just want to return a static list once return a list on the first
+// call then block forever on the second instead of sitting in a tight loop
+func (sr *staticResolver) Next() ([]*naming.Update, error) {
+	if sr.addresses != nil {
+		addrs := sr.addresses
+		sr.addresses = nil
+		return addrs, nil
+	}
+	// Since staticResolver.Next is called in a tight loop block forever
+	// after returning the initial set of addresses
+	forever := make(chan struct{})
+	<-forever
+	return nil, nil
+}
+
+// Close does nothing
+func (sr *staticResolver) Close() {}
+
 // ClientConfig object.
 type ClientConfig struct {
-	Address      string
+	Addresses    []string
 	TLS          *tls.Config
 	AutoTLS      bool
 	autoTLSDir   string
@@ -74,14 +117,23 @@ type ClientConfig struct {
 // NewClientConfig returns a new ClientConfig with default values.
 func NewClientConfig(address string) ClientConfig {
 	return ClientConfig{
-		Address: address,
-		AutoTLS: true,
+		Addresses: []string{address},
+		AutoTLS:   true,
+	}
+}
+
+// NewClientConfigAddresses returns a new ClientConfig multiple node addresses.
+func NewClientConfigAddresses(addresses []string) ClientConfig {
+	return ClientConfig{
+		Addresses: addresses,
+		AutoTLS:   true,
 	}
 }
 
 // Client object.
 type Client struct {
 	authToken string
+	cancel    context.CancelFunc
 	config    ClientConfig
 	ctx       context.Context
 	closeCh   chan struct{}
@@ -100,23 +152,11 @@ type Client struct {
 // NewClient returns a new Client object.
 func NewClient(config ClientConfig) (*Client, error) {
 	if config.AutoTLS {
-		dir, err := ioutil.TempDir("", "mydis-client")
+		var err error
+		config.TLS, err = NewSelfCerts("Mydis")
 		if err != nil {
 			return nil, err
 		}
-
-		config.autoTLSDir = dir
-		tlsInfo, err := generateCert(dir)
-		if err != nil {
-			os.RemoveAll(dir)
-			return nil, err
-		}
-		tlsConfig, err := tlsInfo.ClientConfig()
-		if err != nil {
-			os.RemoveAll(dir)
-			return nil, err
-		}
-		config.TLS = tlsConfig
 	}
 
 	if config.TLS != nil {
@@ -127,16 +167,19 @@ func NewClient(config ClientConfig) (*Client, error) {
 		config.transportOpt = grpc.WithInsecure()
 	}
 
-	socket, err := grpc.Dial(config.Address, config.transportOpt)
+	balancer := grpc.RoundRobin(newStaticResolver(config.Addresses))
+	socket, err := grpc.Dial(config.Addresses[0], config.transportOpt, grpc.WithBalancer(balancer))
 	if err != nil {
 		return nil, err
 	}
 
 	grpclog.SetLogger(log.New(ioutil.Discard, "", log.LstdFlags))
 
+	ctx, cancel := context.WithCancel(context.Background())
 	client := &Client{
+		cancel:   cancel,
 		config:   config,
-		ctx:      context.Background(),
+		ctx:      ctx,
 		closeCh:  make(chan struct{}),
 		reqCh:    make(chan *WatchRequest),
 		resCh:    make(chan struct{}),
@@ -145,12 +188,6 @@ func NewClient(config ClientConfig) (*Client, error) {
 		watching: map[string]struct{}{},
 		watchers: map[int64]chan *Event{},
 	}
-
-	stream, err := client.mc.Watch(client.ctx)
-	if err != nil {
-		return nil, err
-	}
-	client.stream = stream
 
 	go client.backgroundProcess()
 
@@ -798,33 +835,39 @@ func (c *Client) RoleRevokePermission(role string, perm *Permission) error {
 func (c *Client) backgroundProcess() {
 	defer func() {
 		c.lock.RLock()
-
-		c.stream.CloseSend()
-
-		if c.closing {
-			close(c.closeCh)
-			close(c.reqCh)
-			close(c.resCh)
-			c.socket.Close()
-		} else {
-			// handle reconnects just in case gRPC doesn't do this automatically.
-			stream, err := c.mc.Watch(c.ctx)
-			if err != nil {
-				return
+		defer c.lock.RUnlock()
+		defer func() {
+			if c.closing {
+				c.stream.CloseSend()
+				close(c.closeCh)
+				close(c.reqCh)
+				close(c.resCh)
+				c.socket.Close()
 			}
-			c.stream = stream
+		}()
 
+		// handle reconnects.
+		if !c.closing {
 			go c.backgroundProcess()
 
-			for key := range c.watching {
-				prefix := false
-				if strings.HasSuffix(key, suffixForKeysUsingPrefix) {
-					prefix = true
-				}
-				c.Watch(key, prefix)
-			}
 		}
-		c.lock.RUnlock()
+	}()
+
+	stream, err := c.mc.Watch(c.ctx)
+	if err != nil {
+		return
+	}
+	c.stream = stream
+
+	// re-watch keys after a reconnect
+	go func() {
+		for key := range c.watching {
+			prefix := false
+			if strings.HasSuffix(key, suffixForKeysUsingPrefix) {
+				prefix = true
+			}
+			c.Watch(key, prefix)
+		}
 	}()
 
 	// receiver
@@ -832,6 +875,7 @@ func (c *Client) backgroundProcess() {
 		for {
 			ev, err := c.stream.Recv()
 			if err != nil {
+				c.closeCh <- struct{}{}
 				return
 			}
 
@@ -846,6 +890,8 @@ func (c *Client) backgroundProcess() {
 	// sender
 	for {
 		select {
+		case <-c.ctx.Done():
+			return
 		case <-c.closeCh:
 			return
 		case r := <-c.reqCh:

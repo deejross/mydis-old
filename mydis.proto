@@ -16,120 +16,377 @@ syntax = "proto3";
 
 package mydis;
 
+import "google/api/annotations.proto";
+
 service Mydis {
 	// -- core functions
 	// Keys returns a list of valid keys.
-	rpc Keys(Null) returns (KeysList) {}
+	rpc Keys(Null) returns (KeysList) {
+		option (google.api.http) = {
+			post: "/v1/keys"
+			body: "*"
+		};
+	}
     // KeysWithPrefix returns a list of keys with the given prefix.
-    rpc KeysWithPrefix(Key) returns (KeysList) {}
+    rpc KeysWithPrefix(Key) returns (KeysList) {
+		option (google.api.http) = {
+			post: "/v1/keysWithPrefix"
+			body: "*"
+		};
+	}
 	// Has checks if the cache has the given key and that it is not expired.
-	rpc Has(Key) returns (Bool) {}
+	rpc Has(Key) returns (Bool) {
+		option (google.api.http) = {
+			post: "/v1/has"
+			body: "*"
+		};
+	}
 	// SetExpire sets the expiration on a key.
-	rpc SetExpire(Expiration) returns (Null) {}
+	rpc SetExpire(Expiration) returns (Null) {
+		option (google.api.http) = {
+			post: "/v1/setExpire"
+			body: "*"
+		};
+	}
     // Lock a key from being modified.
-    rpc Lock(Key) returns (Null) {}
+    rpc Lock(Key) returns (Null) {
+		option (google.api.http) = {
+			post: "/v1/lock"
+			body: "*"
+		};
+	}
 	// LockWithTimeout locks a key, waiting for the given number of seconds if already locked before returning an error.
-	rpc LockWithTimeout(Expiration) returns (Null) {}
+	rpc LockWithTimeout(Expiration) returns (Null) {
+		option (google.api.http) = {
+			post: "/v1/lockWithTimeout"
+			body: "*"
+		};
+	}
     // Unlock a key for modifications.
-    rpc Unlock(Key) returns (Null) {}
+    rpc Unlock(Key) returns (Null) {
+		option (google.api.http) = {
+			post: "/v1/unlock"
+			body: "*"
+		};
+	}
 	// UnlockThenSet unlocks a key, then immediately sets its byte array value.
-	rpc UnlockThenSet(ByteValue) returns (Null) {}
+	rpc UnlockThenSet(ByteValue) returns (Null) {
+		option (google.api.http) = {
+			post: "/v1/unlockThenSet"
+			body: "*"
+		};
+	}
 	// UnlockThenSetList unlocks a key, then immediately sets its list value.
-	rpc UnlockThenSetList(List) returns (Null) {}
+	rpc UnlockThenSetList(List) returns (Null) {
+		option (google.api.http) = {
+			post: "/v1/unlockThenSetList"
+			body: "*"
+		};
+	}
 	// Delete removes a key from the cache.
-	rpc Delete(Key) returns (Null) {}
+	rpc Delete(Key) returns (Null) {
+		option (google.api.http) = {
+			post: "/v1/delete"
+			body: "*"
+		};
+	}
 	// Clear the cache.
-	rpc Clear(Null) returns (Null) {}
+	rpc Clear(Null) returns (Null) {
+		option (google.api.http) = {
+			post: "/v1/clear"
+			body: "*"
+		};
+	}
 
 	// -- bytes functions
 	// Get gets the value for the given key as a byte slice.
-    rpc Get(Key) returns (ByteValue) {}
+    rpc Get(Key) returns (ByteValue) {
+		option (google.api.http) = {
+			post: "/v1/get"
+			body: "*"
+		};
+	}
 	// GetMany gets a list of values from the cache.
-	rpc GetMany(KeysList) returns (Hash) {}
+	rpc GetMany(KeysList) returns (Hash) {
+		option (google.api.http) = {
+			post: "/v1/getMany"
+			body: "*"
+		};
+	}
 	// GetWithPrefix returns the keys with the given prefix.
-	rpc GetWithPrefix(Key) returns (Hash) {}
+	rpc GetWithPrefix(Key) returns (Hash) {
+		option (google.api.http) = {
+			post: "/v1/getWithPrefix"
+			body: "*"
+		};
+	}
 	// Set sets the byte value.
-    rpc Set(ByteValue) returns (Null) {}
+    rpc Set(ByteValue) returns (Null) {
+		option (google.api.http) = {
+			post: "/v1/set"
+			body: "*"
+		};
+	}
 	// SetNX sets a value only if the key doesn't exist, returns true if changed.
-	rpc SetNX(ByteValue) returns (Bool) {}
+	rpc SetNX(ByteValue) returns (Bool) {
+		option (google.api.http) = {
+			post: "/v1/setNX"
+			body: "*"
+		};
+	}
 	// SetMany values, returning a map[key]errorText for any errors.
-	rpc SetMany(Hash) returns (ErrorHash) {}
+	rpc SetMany(Hash) returns (ErrorHash) {
+		option (google.api.http) = {
+			post: "/v1/setMany"
+			body: "*"
+		};
+	}
 	// Length returns the length of the value for the given key.
-	rpc Length(Key) returns (IntValue) {}
+	rpc Length(Key) returns (IntValue) {
+		option (google.api.http) = {
+			post: "/v1/length"
+			body: "*"
+		};
+	}
 
 	// -- number functions
 	// GetInt gets an integer value for the given key.
-	rpc GetInt(Key) returns (IntValue) {}
+	rpc GetInt(Key) returns (IntValue) {
+		option (google.api.http) = {
+			post: "/v1/getInt"
+			body: "*"
+		};
+	}
 	// GetFloat gets a float value for the given key.
-	rpc GetFloat(Key) returns (FloatValue) {}
+	rpc GetFloat(Key) returns (FloatValue) {
+		option (google.api.http) = {
+			post: "/v1/getFloat"
+			body: "*"
+		};
+	}
 	// SetInt sets an integer.
-	rpc SetInt(IntValue) returns (Null) {}
+	rpc SetInt(IntValue) returns (Null) {
+		option (google.api.http) = {
+			post: "/v1/setInt"
+			body: "*"
+		};
+	}
 	// SetFloat sets a float.
-	rpc SetFloat(FloatValue) returns (Null) {}
+	rpc SetFloat(FloatValue) returns (Null) {
+		option (google.api.http) = {
+			post: "/v1/setFloat"
+			body: "*"
+		};
+	}
 	// IncrementInt increment an integer stored at the given key by the given number and returns new value.
-	rpc IncrementInt(IntValue) returns (IntValue) {}
+	rpc IncrementInt(IntValue) returns (IntValue) {
+		option (google.api.http) = {
+			post: "/v1/incrementInt"
+			body: "*"
+		};
+	}
 	// DecrementInt decrements an integer stored at the given key by the given number and returns new value.
-	rpc DecrementInt(IntValue) returns (IntValue) {}
+	rpc DecrementInt(IntValue) returns (IntValue) {
+		option (google.api.http) = {
+			post: "/v1/decrementInt"
+			body: "*"
+		};
+	}
 	// IncrementFloat increment a float stored at the given key by the given number and returns new value.
-	rpc IncrementFloat(FloatValue) returns (FloatValue) {}
+	rpc IncrementFloat(FloatValue) returns (FloatValue) {
+		option (google.api.http) = {
+			post: "/v1/incrementFloat"
+			body: "*"
+		};
+	}
 	// DecrementFloat decrements a float stored at the given key by the given number and returns new value.
-	rpc DecrementFloat(FloatValue) returns (FloatValue) {}
+	rpc DecrementFloat(FloatValue) returns (FloatValue) {
+		option (google.api.http) = {
+			post: "/v1/decrementFloat"
+			body: "*"
+		};
+	}
 
 	// -- list functions
 	// GetList gets a list from the cache.
-	rpc GetList(Key) returns (List) {}
+	rpc GetList(Key) returns (List) {
+		option (google.api.http) = {
+			post: "/v1/getList"
+			body: "*"
+		};
+	}
 	// GetListItem gets a single item from a list by index, supports negative indexing.
-	rpc GetListItem(ListItem) returns (ByteValue) {}
+	rpc GetListItem(ListItem) returns (ByteValue) {
+		option (google.api.http) = {
+			post: "/v1/getListItem"
+			body: "*"
+		};
+	}
 	// SetList sets a list in the cache.
-	rpc SetList(List) returns (Null) {}
+	rpc SetList(List) returns (Null) {
+		option (google.api.http) = {
+			post: "/v1/setList"
+			body: "*"
+		};
+	}
 	// SetListItem sets a single item in a list by index.
-	rpc SetListItem(ListItem) returns (Null) {}
+	rpc SetListItem(ListItem) returns (Null) {
+		option (google.api.http) = {
+			post: "/v1/setListItem"
+			body: "*"
+		};
+	}
 	// ListLength returns the number of items in a list.
-	rpc ListLength(Key) returns (IntValue) {}
+	rpc ListLength(Key) returns (IntValue) {
+		option (google.api.http) = {
+			post: "/v1/listLength"
+			body: "*"
+		};
+	}
 	// ListLimit sets the maximum length of a list, removing items from the top once limit is reached.
-	rpc ListLimit(ListItem) returns (Null) {}
+	rpc ListLimit(ListItem) returns (Null) {
+		option (google.api.http) = {
+			post: "/v1/listLimit"
+			body: "*"
+		};
+	}
 	// ListInsert inserts a new item at the given index in the list.
-	rpc ListInsert(ListItem) returns (Null) {}
+	rpc ListInsert(ListItem) returns (Null) {
+		option (google.api.http) = {
+			post: "/v1/listInsert"
+			body: "*"
+		};
+	}
 	// ListAppend inserts a new item at the end of the list.
-	rpc ListAppend(ListItem) returns (Null) {}
+	rpc ListAppend(ListItem) returns (Null) {
+		option (google.api.http) = {
+			post: "/v1/listAppend"
+			body: "*"
+		};
+	}
 	// ListPopLeft returns and removes the first item in a list.
-	rpc ListPopLeft(Key) returns (ByteValue) {}
+	rpc ListPopLeft(Key) returns (ByteValue) {
+		option (google.api.http) = {
+			post: "/v1/listPopLeft"
+			body: "*"
+		};
+	}
 	// ListPopRight returns and removes the last item in a list.
-	rpc ListPopRight(Key) returns (ByteValue) {}
+	rpc ListPopRight(Key) returns (ByteValue) {
+		option (google.api.http) = {
+			post: "/v1/listPopRight"
+			body: "*"
+		};
+	}
 	// ListHas determines if a list contains an item, returns index or -1 if not found.
-	rpc ListHas(ListItem) returns (IntValue) {}
+	rpc ListHas(ListItem) returns (IntValue) {
+		option (google.api.http) = {
+			post: "/v1/listHas"
+			body: "*"
+		};
+	}
 	// ListDelete removes an item from a list by index.
-	rpc ListDelete(ListItem) returns (Null) {}
+	rpc ListDelete(ListItem) returns (Null) {
+		option (google.api.http) = {
+			post: "/v1/listDelete"
+			body: "*"
+		};
+	}
 	// ListDeleteItem removes the first occurrence of value from a list, returns index of removed item or -1 for not found.
-	rpc ListDeleteItem(ListItem) returns (IntValue) {}
+	rpc ListDeleteItem(ListItem) returns (IntValue) {
+		option (google.api.http) = {
+			post: "/v1/listDeleteItem"
+			body: "*"
+		};
+	}
 
 	// -- hash functions
 	// GetHash gets a hash from the cache.
-	rpc GetHash(Key) returns (Hash) {}
+	rpc GetHash(Key) returns (Hash) {
+		option (google.api.http) = {
+			post: "/v1/getHash"
+			body: "*"
+		};
+	}
 	// GetHashField gets a single value in a hash.
-	rpc GetHashField(HashField) returns (ByteValue) {}
+	rpc GetHashField(HashField) returns (ByteValue) {
+		option (google.api.http) = {
+			post: "/v1/getHasField"
+			body: "*"
+		};
+	}
 	// GetHashFields gets multiple hash values.
-	rpc GetHashFields(HashFieldSet) returns (Hash) {}
+	rpc GetHashFields(HashFieldSet) returns (Hash) {
+		option (google.api.http) = {
+			post: "/v1/getHashFields"
+			body: "*"
+		};
+	}
 	// HashHas determines if a hash has a given field.
-	rpc HashHas(HashField) returns (Bool) {}
+	rpc HashHas(HashField) returns (Bool) {
+		option (google.api.http) = {
+			post: "/v1/hashHas"
+			body: "*"
+		};
+	}
 	// HashLength returns the number of fields in a hash.
-	rpc HashLength(Key) returns (IntValue) {}
+	rpc HashLength(Key) returns (IntValue) {
+		option (google.api.http) = {
+			post: "/v1/hashLength"
+			body: "*"
+		};
+	}
 	// HashFields gets a list of the fields in a hash.
-	rpc HashFields(Key) returns (KeysList) {}
+	rpc HashFields(Key) returns (KeysList) {
+		option (google.api.http) = {
+			post: "/v1/hashFields"
+			body: "*"
+		};
+	}
 	// HashValues gets a list of the values in a hash.
-	rpc HashValues(Key) returns (List) {}
+	rpc HashValues(Key) returns (List) {
+		option (google.api.http) = {
+			post: "/v1/hashValues"
+			body: "*"
+		};
+	}
 	// SetHash sets the value of a hash.
-	rpc SetHash(Hash) returns (Null) {}
+	rpc SetHash(Hash) returns (Null) {
+		option (google.api.http) = {
+			post: "/v1/setHash"
+			body: "*"
+		};
+	}
 	// SetHashField sets a single value in a hash.
-	rpc SetHashField(HashField) returns (Null) {}
+	rpc SetHashField(HashField) returns (Null) {
+		option (google.api.http) = {
+			post: "/v1/setHashField"
+			body: "*"
+		};
+	}
 	// SetHashFields sets multiple values in a hash.
-	rpc SetHashFields(Hash) returns (Null) {}
+	rpc SetHashFields(Hash) returns (Null) {
+		option (google.api.http) = {
+			post: "/v1/setHashFields"
+			body: "*"
+		};
+	}
 	// DelHashField deletes a field from a hash.
-	rpc DelHashField(HashField) returns (Null) {}
+	rpc DelHashField(HashField) returns (Null) {
+		option (google.api.http) = {
+			post: "/v1/delHashField"
+			body: "*"
+		};
+	}
 
 	// -- push functions
 	// Watch for changes to a key.
-	rpc Watch(stream WatchRequest) returns (stream Event) {}
+	rpc Watch(stream WatchRequest) returns (stream Event) {
+		option (google.api.http) = {
+			post: "/v1/watch"
+			body: "*"
+		};
+	}
 
 	// -- auth passthrough functions
 	// AuthEnable enables authentication.
