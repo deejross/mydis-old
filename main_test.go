@@ -116,7 +116,7 @@ func TestMain(m *testing.M) {
 	ctx = metadata.NewContext(ctx, md)
 
 	// start the single server
-	if err := server.Start(":8383"); err != nil {
+	if err := server.Start(":8000", ":8383"); err != nil {
 		log.Println(err)
 		os.Exit(1)
 	}
@@ -127,7 +127,7 @@ func TestMain(m *testing.M) {
 		wg.Add(1)
 		defer wg.Done()
 
-		if err := peer1.Start(":8384"); err != nil {
+		if err := peer1.Start(":8001", ":8384"); err != nil {
 			log.Println(err)
 			os.Exit(1)
 		}
@@ -137,7 +137,7 @@ func TestMain(m *testing.M) {
 		wg.Add(1)
 		defer wg.Done()
 
-		if err := peer2.Start(":8385"); err != nil {
+		if err := peer2.Start(":8002", ":8385"); err != nil {
 			log.Println(err)
 			os.Exit(1)
 		}
@@ -146,7 +146,7 @@ func TestMain(m *testing.M) {
 		wg.Add(1)
 		defer wg.Done()
 
-		if err := peer3.Start(":8386"); err != nil {
+		if err := peer3.Start(":8003", ":8386"); err != nil {
 			log.Println(err)
 			os.Exit(1)
 		}

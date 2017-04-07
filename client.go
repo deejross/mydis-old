@@ -26,8 +26,6 @@ import (
 
 	"crypto/tls"
 
-	"os"
-
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -109,7 +107,6 @@ type ClientConfig struct {
 	Addresses    []string
 	TLS          *tls.Config
 	AutoTLS      bool
-	autoTLSDir   string
 	creds        *credentials.TransportCredentials
 	transportOpt grpc.DialOption
 }
@@ -201,10 +198,6 @@ func (c *Client) Close() {
 	c.lock.Unlock()
 
 	c.closeCh <- struct{}{}
-
-	if c.config.autoTLSDir != "" {
-		os.RemoveAll(c.config.autoTLSDir)
-	}
 }
 
 // Keys returns a list of valid keys.
@@ -839,7 +832,6 @@ func (c *Client) backgroundProcess() {
 		defer func() {
 			if c.closing {
 				c.stream.CloseSend()
-				close(c.closeCh)
 				close(c.reqCh)
 				close(c.resCh)
 				c.socket.Close()
