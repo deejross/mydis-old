@@ -4,7 +4,7 @@
 [![Build Status](https://semaphoreci.com/api/v1/deejross/mydis/branches/master/shields_badge.svg)](https://semaphoreci.com/deejross/mydis)
 [![GoDoc](https://godoc.org/github.com/deejross/mydis?status.svg)](https://godoc.org/github.com/deejross/mydis)
 
-Version: 1.1.0
+Version: 1.2.0
 
 Introduction
 ------------
@@ -13,8 +13,8 @@ Distributed, reliable database and cache library, server, and client. Inspired b
 Basics
 ------
 Mydis can store multiple types of data: strings, bytes, integers, floats, lists, and hashes (objects that hold key/value pairs). Each item is referenced with a key, a string of any length.
-The Mydis library, server, and client are thread/goroutine-safe. Client and server communication is handled with gRPC. All data types can have an expiration value set.
-Both client and peer connections are encrypted by default.
+The Mydis library, server, and client are thread/goroutine-safe. Client and server communication is handled with gRPC. All data types can have an expiration value set. Backwards compatibility with HTTP/1.1 is handled by gRPC-Gateway and must be run on a separate port.
+Both client and peer connections using gRPC are encrypted by default.
 
 Details
 -------
@@ -23,6 +23,10 @@ Under the hood, the production-ready [Etcd](https://etcd.io/) system is used. Th
 
 In an effort to keep the focus on reliability and consistency, the authors of Etcd decided to allow only a single data type for both keys and values: byte arrays.
 Mydis builds upon the solid Etcd framework to provide more data types and features such as atomic list operations and distributed locks.
+
+Load Balancing
+--------------
+The client supports Round Robin load balancing by calling `mydis.NewClientConfigAddresses(addresses []string)` or by changing the `Addresses` value in an existing `ClientConfig` instance. The client will connect to all servers specified and round robin each request across the pool of connections. Since 1.2.0, Mydis supports graceful reconnects in the event of a server or network outage.
 
 Versioning
 ----------
@@ -36,7 +40,7 @@ It is recommended to leave `listen-client-urls` and `advertise-client-urls` as a
 
 See Etcd's documentation for more [configuration options](https://coreos.com/etcd/docs/latest/op-guide/configuration.html).
 
-The listening port can be changed from the default os 8383 by specifying the environment variable `MYDIS_ADDRESS`. The default value is `0.0.0.0:8383`.
+The gRPC listening port can be changed from the default of `8383` by specifying the environment variable `MYDIS_ADDRESS`. The default value is `0.0.0.0:8383`. Likewise, the gRPC-Gateway port can be changed by specifying the environment variable `PORT`. The default value is `8000`.
 
 Clustering
 ----------
@@ -234,15 +238,15 @@ Usage
 -----
 **Server**
 ```go
-server := mydis.NewServer(mydisNewServerConfig())
-if err := server.Start(":8383"); err != nil {
+server := mydis.NewServer(mydis.NewServerConfig())
+if err := server.Start(":8000", :8383"); err != nil {
 	log.Fatalln(err)
 }
 ```
 
 **Client**
 ```go
-client := mydis.NewClient(NewClientConfig("localhost:8383"))
+client := mydis.NewClient(mydis.NewClientConfig("localhost:8383"))
 s, err := client.Get("key").String()
 if err != nil {
 	return err
@@ -255,7 +259,7 @@ Etcd limits message sizes to 1.5MB, so values cannot be larger than this. The ma
 
 Help Wanted
 -----------
-If you encounter a bug or have an idea for a feature, please open a GitHub issue. There's still time request a feature for version 1.2!
+If you encounter a bug or have an idea for a feature, please open a GitHub issue.
 
 Development
 -----------
