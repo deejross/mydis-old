@@ -239,7 +239,7 @@ Usage
 **Server**
 ```go
 server := mydis.NewServer(mydis.NewServerConfig())
-if err := server.Start(":8000", :8383"); err != nil {
+if err := server.Start(":8000", ":8383"); err != nil {
 	log.Fatalln(err)
 }
 ```
