@@ -15,6 +15,8 @@
 package mydis
 
 import (
+	"errors"
+
 	"github.com/coreos/etcd/auth/authpb"
 	"github.com/coreos/etcd/etcdserver/etcdserverpb"
 	"golang.org/x/net/context"
@@ -92,6 +94,10 @@ func (s *Server) UserList(ctx context.Context, req *AuthUserListRequest) (*AuthU
 
 // UserDelete deletes a specified user.
 func (s *Server) UserDelete(ctx context.Context, req *AuthUserDeleteRequest) (*AuthUserDeleteResponse, error) {
+	if req == nil {
+		return &AuthUserDeleteResponse{}, errors.New("Unknown error")
+	}
+
 	resp, err := s.cache.Server.UserDelete(ctx, &etcdserverpb.AuthUserDeleteRequest{Name: req.Name})
 	if err != nil {
 		return &AuthUserDeleteResponse{}, err

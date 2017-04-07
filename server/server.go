@@ -25,26 +25,35 @@ import (
 )
 
 var (
-	defaultConfigFile = "/etc/mydis/mydis.conf"
-	defaultAddress    = "0.0.0.0:8383"
+	defaultConfigFile   = "/etc/mydis/mydis.conf"
+	defaultAddressHTTP1 = "0.0.0.0:8000"
+	defaultAddressHTTP2 = "0.0.0.0:8383"
 )
 
 func main() {
 	cfg := loadConfig()
 	server := mydis.NewServer(cfg)
-	err := server.Start(getAddress())
+	err := server.Start(getAddressHTTP1(), getAddressHTTP2())
 	if err != nil {
 		fmt.Println(err)
 		log.Fatalln(err)
 	}
+
 	select {} // block forever
 }
 
-func getAddress() string {
+func getAddressHTTP1() string {
+	if port := os.Getenv("PORT"); port != "" {
+		return "0.0.0.0:" + port
+	}
+	return defaultAddressHTTP1
+}
+
+func getAddressHTTP2() string {
 	if address := os.Getenv("MYDIS_ADDRESS"); address != "" {
 		return address
 	}
-	return defaultAddress
+	return defaultAddressHTTP2
 }
 
 func loadConfig() *embed.Config {

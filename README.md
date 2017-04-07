@@ -8,12 +8,12 @@ Version: 1.1.0
 
 Introduction
 ------------
-Distributed, reliable cache library, server, and client. Inspired by Redis, this cache is written entirely in Go and can be used as a library, embedded into an existing application, or as a standalone client/server.
+Distributed, reliable database and cache library, server, and client. Inspired by Redis, Mydis is written entirely in Go and can be used as a library, embedded into an existing application, or as a standalone client/server.
 
 Basics
 ------
-The cache can store multiple types of data: strings, bytes, integers, floats, lists, and hashes (objects that hold key/value pairs). Each item is referenced with a key, a string of any length.
-The cache library, server, and client are thread/goroutine-safe. Client and server communication is handled with gRPC. All data types can have an expiration value set.
+Mydis can store multiple types of data: strings, bytes, integers, floats, lists, and hashes (objects that hold key/value pairs). Each item is referenced with a key, a string of any length.
+The Mydis library, server, and client are thread/goroutine-safe. Client and server communication is handled with gRPC. All data types can have an expiration value set.
 Both client and peer connections are encrypted by default.
 
 Details
@@ -26,7 +26,7 @@ Mydis builds upon the solid Etcd framework to provide more data types and featur
 
 Versioning
 ----------
-Versioning is done using [SemVer](http://semver.org/). Release are tagged with the version number. It is highly recommended that only tagged releases are used. The master branch is constantly in a state of flux and builds may break. Using a tagged release ensures that a stable version of Mydis is being used.
+Versioning is done using [SemVer](http://semver.org/). All bug fixes and new features should happen in separate branches and a pull request made when ready to merge. The master branch is the development branch and stable releases are tagged with the version number.
 
 Configuration
 -------------
@@ -120,12 +120,12 @@ Keys
 Keys are strings of any length.
 
 **Functions**
-- `Keys() []string`: Get list of keys available in the cache.
+- `Keys() []string`: Get list of keys available in the database.
 - `KeysWithPrefix() []string`: Gets a list of keys with the given prefix.
 - `Has(key) bool`: Determine if a key exists.
 - `SetExpire(key, exp)`: Reset the expiration of a key to the number of seconds from now.
 - `Delete(key)`: Delete a key.
-- `Clear()`: Clear the cache.
+- `Clear()`: Clear the database.
 
 Strings/Bytes
 -------------
@@ -256,6 +256,10 @@ Etcd limits message sizes to 1.5MB, so values cannot be larger than this. The ma
 Help Wanted
 -----------
 If you encounter a bug or have an idea for a feature, please open a GitHub issue. There's still time request a feature for version 1.2!
+
+Development
+-----------
+If you are interested in setting up an environment to modify Mydis and submit a pull request, you can follow the instructions in the [SETUP](SETUP.md) document.
 
 License
 -------

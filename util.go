@@ -16,19 +16,17 @@ package mydis
 
 import (
 	"errors"
-	"path"
 	"unsafe"
 
 	"time"
 
-	"net"
-
 	"strings"
+
+	"crypto/tls"
 
 	"github.com/coreos/etcd/embed"
 	pb "github.com/coreos/etcd/etcdserver/etcdserverpb"
 	"github.com/coreos/etcd/mvcc/mvccpb"
-	"github.com/coreos/etcd/pkg/transport"
 	"github.com/ghodss/yaml"
 	"github.com/golang/protobuf/proto"
 )
@@ -464,31 +462,10 @@ func enforceListLimit(lst *List) {
 	lst.Value = lst.Value[size-lst.Limit:]
 }
 
-func generateTLSInfo(config *embed.Config) (transport.TLSInfo, error) {
+func generateTLSInfo(config *embed.Config) (*tls.Config, error) {
 	if config.ClientAutoTLS && config.ClientTLSInfo.Empty() {
-		return generateCert(path.Join(config.Dir, "fixtures/mydis-client"))
+		return NewSelfCerts("Mydis")
 	}
 
-	return config.ClientTLSInfo, nil
-}
-
-func generateCert(path string) (transport.TLSInfo, error) {
-	info := transport.TLSInfo{}
-
-	interfaces, err := net.Interfaces()
-	if err != nil {
-		return info, err
-	}
-	hosts := []string{}
-	for _, iface := range interfaces {
-		addresses, err := iface.Addrs()
-		if err != nil {
-			continue
-		}
-		for _, a := range addresses {
-			hosts = append(hosts, a.String())
-		}
-	}
-
-	return transport.SelfCert(path, hosts)
+	return nil, nil
 }
