@@ -18,6 +18,8 @@ import (
 	"bytes"
 	"testing"
 	"time"
+
+	"github.com/deejross/mydis/pb"
 )
 
 func TestWatch(t *testing.T) {
@@ -34,7 +36,7 @@ func TestWatch(t *testing.T) {
 
 	select {
 	case ev := <-ch:
-		if ev.Type != Event_PUT || ev.Current.Key != "watch1" || !bytes.Equal(ev.Current.Value, []byte("value")) {
+		if ev.Type != pb.Event_PUT || ev.Current.Key != "watch1" || !bytes.Equal(ev.Current.Value, []byte("value")) {
 			t.Error("Unexpected event:", ev)
 		}
 	case <-time.After(1 * time.Second):
@@ -48,7 +50,7 @@ func TestWatch(t *testing.T) {
 
 	select {
 	case ev := <-ch:
-		if ev.Type != Event_PUT || ev.Current.Key != "watch1" || !bytes.Equal(ev.Current.Value, []byte("value2")) {
+		if ev.Type != pb.Event_PUT || ev.Current.Key != "watch1" || !bytes.Equal(ev.Current.Value, []byte("value2")) {
 			t.Error("Unexpected event:", ev)
 		}
 	case <-time.After(1 * time.Second):

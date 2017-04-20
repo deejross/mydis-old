@@ -17,12 +17,14 @@ package mydis
 import (
 	"bytes"
 	"testing"
+
+	"github.com/deejross/mydis/pb"
 )
 
 func TestSetHash(t *testing.T) {
 	testReset()
 
-	if _, err := server.SetHash(ctx, &Hash{Key: "hash1", Value: map[string][]byte{
+	if _, err := server.SetHash(ctx, &pb.Hash{Key: "hash1", Value: map[string][]byte{
 		"f1": []byte("val1"),
 		"f2": []byte("val2"),
 		"f3": []byte("val3"),
@@ -33,7 +35,7 @@ func TestSetHash(t *testing.T) {
 }
 
 func TestGetHash(t *testing.T) {
-	if h, err := server.GetHash(ctx, &Key{Key: "hash1"}); err != nil {
+	if h, err := server.GetHash(ctx, &pb.Key{Key: "hash1"}); err != nil {
 		t.Error(err)
 	} else if len(h.Value) != 4 || !bytes.Equal(h.Value["f1"], []byte("val1")) {
 		t.Error("Unexpected value:", h.Value)
@@ -41,7 +43,7 @@ func TestGetHash(t *testing.T) {
 }
 
 func TestGetHashField(t *testing.T) {
-	if b, err := server.GetHashField(ctx, &HashField{Key: "hash1", Field: "f2"}); err != nil {
+	if b, err := server.GetHashField(ctx, &pb.HashField{Key: "hash1", Field: "f2"}); err != nil {
 		t.Error(err)
 	} else if !bytes.Equal(b.Value, []byte("val2")) {
 		t.Error("Unexpected value:", b.Value)
@@ -49,7 +51,7 @@ func TestGetHashField(t *testing.T) {
 }
 
 func TestGetHashFields(t *testing.T) {
-	if h, err := server.GetHashFields(ctx, &HashFieldSet{Key: "hash1", Field: []string{"f3", "f4"}}); err != nil {
+	if h, err := server.GetHashFields(ctx, &pb.HashFieldSet{Key: "hash1", Field: []string{"f3", "f4"}}); err != nil {
 		t.Error(err)
 	} else if len(h.Value) != 2 || !bytes.Equal(h.Value["f4"], []byte("val4")) {
 		t.Error("Unexpected value:", h.Value)
@@ -57,7 +59,7 @@ func TestGetHashFields(t *testing.T) {
 }
 
 func TestHashHas(t *testing.T) {
-	if b, err := server.HashHas(ctx, &HashField{Key: "hash1", Field: "f1"}); err != nil {
+	if b, err := server.HashHas(ctx, &pb.HashField{Key: "hash1", Field: "f1"}); err != nil {
 		t.Error(err)
 	} else if !b.Value {
 		t.Error("Unexpected value:", b.Value)
@@ -65,7 +67,7 @@ func TestHashHas(t *testing.T) {
 }
 
 func TestHashLength(t *testing.T) {
-	if iv, err := server.HashLength(ctx, &Key{Key: "hash1"}); err != nil {
+	if iv, err := server.HashLength(ctx, &pb.Key{Key: "hash1"}); err != nil {
 		t.Error(err)
 	} else if iv.Value != 4 {
 		t.Error("Unexpected value:", iv.Value)
@@ -73,7 +75,7 @@ func TestHashLength(t *testing.T) {
 }
 
 func TestHashFields(t *testing.T) {
-	if keys, err := server.HashFields(ctx, &Key{Key: "hash1"}); err != nil {
+	if keys, err := server.HashFields(ctx, &pb.Key{Key: "hash1"}); err != nil {
 		t.Error(err)
 	} else if len(keys.Keys) != 4 || keys.Keys[0] != "f1" {
 		t.Error("Unexpected value:", keys.Keys)
@@ -81,7 +83,7 @@ func TestHashFields(t *testing.T) {
 }
 
 func TestHashValues(t *testing.T) {
-	if lst, err := server.HashValues(ctx, &Key{Key: "hash1"}); err != nil {
+	if lst, err := server.HashValues(ctx, &pb.Key{Key: "hash1"}); err != nil {
 		t.Error(err)
 	} else if len(lst.Value) != 4 || !bytes.Equal(lst.Value[0], []byte("val1")) {
 		t.Error("Unexpected value:", lst.Value)
@@ -89,19 +91,19 @@ func TestHashValues(t *testing.T) {
 }
 
 func TestSetHashField(t *testing.T) {
-	if _, err := server.SetHashField(ctx, &HashField{Key: "hash1", Field: "f5", Value: []byte("val5")}); err != nil {
+	if _, err := server.SetHashField(ctx, &pb.HashField{Key: "hash1", Field: "f5", Value: []byte("val5")}); err != nil {
 		t.Error(err)
 	}
-	if b, err := server.GetHashField(ctx, &HashField{Key: "hash1", Field: "f5"}); err != nil {
+	if b, err := server.GetHashField(ctx, &pb.HashField{Key: "hash1", Field: "f5"}); err != nil {
 		t.Error(err)
 	} else if !bytes.Equal(b.Value, []byte("val5")) {
 		t.Error("Unexpected value:", b)
 	}
 
-	if _, err := server.SetHashField(ctx, &HashField{Key: "hash2", Field: "k1", Value: []byte("v1")}); err != nil {
+	if _, err := server.SetHashField(ctx, &pb.HashField{Key: "hash2", Field: "k1", Value: []byte("v1")}); err != nil {
 		t.Error(err)
 	}
-	if b, err := server.GetHashField(ctx, &HashField{Key: "hash2", Field: "k1"}); err != nil {
+	if b, err := server.GetHashField(ctx, &pb.HashField{Key: "hash2", Field: "k1"}); err != nil {
 		t.Error(err)
 	} else if !bytes.Equal(b.Value, []byte("v1")) {
 		t.Error("Unexpected value:", b)
@@ -109,13 +111,13 @@ func TestSetHashField(t *testing.T) {
 }
 
 func TestSetHashFields(t *testing.T) {
-	if _, err := server.SetHashFields(ctx, &Hash{Key: "hash1", Value: map[string][]byte{
+	if _, err := server.SetHashFields(ctx, &pb.Hash{Key: "hash1", Value: map[string][]byte{
 		"f5": []byte("val5 reset"),
 		"f6": []byte("val6"),
 	}}); err != nil {
 		t.Error(err)
 	}
-	if h, err := server.GetHashFields(ctx, &HashFieldSet{Key: "hash1", Field: []string{"f4", "f5", "f6"}}); err != nil {
+	if h, err := server.GetHashFields(ctx, &pb.HashFieldSet{Key: "hash1", Field: []string{"f4", "f5", "f6"}}); err != nil {
 		t.Error(err)
 	} else if !bytes.Equal(h.Value["f4"], []byte("val4")) || !bytes.Equal(h.Value["f5"], []byte("val5 reset")) {
 		t.Error("Unexpected value:", h.Value)
@@ -123,10 +125,10 @@ func TestSetHashFields(t *testing.T) {
 }
 
 func TestDelHashField(t *testing.T) {
-	if _, err := server.DelHashField(ctx, &HashField{Key: "hash1", Field: "f6"}); err != nil {
+	if _, err := server.DelHashField(ctx, &pb.HashField{Key: "hash1", Field: "f6"}); err != nil {
 		t.Error(err)
 	}
-	if h, err := server.GetHash(ctx, &Key{Key: "hash1"}); err != nil {
+	if h, err := server.GetHash(ctx, &pb.Key{Key: "hash1"}); err != nil {
 		t.Error(err)
 	} else if len(h.Value) != 5 || h.Value["f6"] != nil {
 		t.Error("Unexpected value:", h.Value)

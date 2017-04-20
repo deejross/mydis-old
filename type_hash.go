@@ -20,6 +20,7 @@ import (
 	"strings"
 
 	"github.com/coreos/etcd/etcdserver"
+	"github.com/deejross/mydis/pb"
 	"github.com/gogo/protobuf/proto"
 	"golang.org/x/net/context"
 )
@@ -30,12 +31,12 @@ var (
 )
 
 // GetHash gets a hash from the cache.
-func (s *Server) GetHash(ctx context.Context, key *Key) (*Hash, error) {
+func (s *Server) GetHash(ctx context.Context, key *pb.Key) (*pb.Hash, error) {
 	res, err := s.Get(ctx, key)
 	if err != nil {
 		return nil, err
 	}
-	h := &Hash{}
+	h := &pb.Hash{}
 	if err := proto.Unmarshal(res.Value, h); err != nil && strings.HasPrefix(err.Error(), "proto: can't skip unknown wire type") {
 		return nil, ErrTypeMismatch
 	} else if err != nil {
@@ -45,25 +46,25 @@ func (s *Server) GetHash(ctx context.Context, key *Key) (*Hash, error) {
 }
 
 // GetHashField gets the value of a hash field.
-func (s *Server) GetHashField(ctx context.Context, hf *HashField) (*ByteValue, error) {
-	h, err := s.GetHash(ctx, &Key{Key: hf.Key})
+func (s *Server) GetHashField(ctx context.Context, hf *pb.HashField) (*pb.ByteValue, error) {
+	h, err := s.GetHash(ctx, &pb.Key{Key: hf.Key})
 	if err != nil {
 		return nil, err
 	}
 	if b, ok := h.Value[hf.Field]; ok {
-		return &ByteValue{Value: b}, nil
+		return &pb.ByteValue{Value: b}, nil
 	}
 	return nil, ErrHashFieldNotFound
 }
 
 // GetHashFields gets a list of values from a hash.
-func (s *Server) GetHashFields(ctx context.Context, hs *HashFieldSet) (*Hash, error) {
-	h, err := s.GetHash(ctx, &Key{Key: hs.Key})
+func (s *Server) GetHashFields(ctx context.Context, hs *pb.HashFieldSet) (*pb.Hash, error) {
+	h, err := s.GetHash(ctx, &pb.Key{Key: hs.Key})
 	if err != nil {
 		return nil, err
 	}
 
-	nh := &Hash{Value: map[string][]byte{}}
+	nh := &pb.Hash{Value: map[string][]byte{}}
 	for _, field := range hs.Field {
 		if b, ok := h.Value[field]; ok {
 			nh.Value[field] = b
@@ -73,35 +74,35 @@ func (s *Server) GetHashFields(ctx context.Context, hs *HashFieldSet) (*Hash, er
 }
 
 // HashHas determines if a hash has the given field.
-func (s *Server) HashHas(ctx context.Context, hf *HashField) (*Bool, error) {
-	h, err := s.GetHash(ctx, &Key{Key: hf.Key})
+func (s *Server) HashHas(ctx context.Context, hf *pb.HashField) (*pb.Bool, error) {
+	h, err := s.GetHash(ctx, &pb.Key{Key: hf.Key})
 	if err != nil {
 		return nil, err
 	}
 
 	if _, ok := h.Value[hf.Field]; ok {
-		return &Bool{Value: true}, nil
+		return &pb.Bool{Value: true}, nil
 	}
-	return &Bool{Value: false}, nil
+	return &pb.Bool{Value: false}, nil
 }
 
 // HashLength gets the number of fields in a hash.
-func (s *Server) HashLength(ctx context.Context, key *Key) (*IntValue, error) {
+func (s *Server) HashLength(ctx context.Context, key *pb.Key) (*pb.IntValue, error) {
 	h, err := s.GetHash(ctx, key)
 	if err != nil {
 		return nil, err
 	}
-	return &IntValue{Value: int64(len(h.Value))}, nil
+	return &pb.IntValue{Value: int64(len(h.Value))}, nil
 }
 
 // HashFields gets all fields in a hash.
-func (s *Server) HashFields(ctx context.Context, key *Key) (*KeysList, error) {
+func (s *Server) HashFields(ctx context.Context, key *pb.Key) (*pb.KeysList, error) {
 	h, err := s.GetHash(ctx, key)
 	if err != nil {
 		return nil, err
 	}
 
-	lst := &KeysList{Keys: []string{}}
+	lst := &pb.KeysList{Keys: []string{}}
 	for field := range h.Value {
 		lst.Keys = append(lst.Keys, field)
 	}
@@ -110,7 +111,7 @@ func (s *Server) HashFields(ctx context.Context, key *Key) (*KeysList, error) {
 }
 
 // HashValues gets all values in a hash.
-func (s *Server) HashValues(ctx context.Context, key *Key) (*List, error) {
+func (s *Server) HashValues(ctx context.Context, key *pb.Key) (*pb.List, error) {
 	h, err := s.GetHash(ctx, key)
 	if err != nil {
 		return nil, err
@@ -122,7 +123,7 @@ func (s *Server) HashValues(ctx context.Context, key *Key) (*List, error) {
 	}
 	sort.Strings(keys)
 
-	lst := &List{Value: [][]byte{}}
+	lst := &pb.List{Value: [][]byte{}}
 	for _, key := range keys {
 		b := h.Value[key]
 		lst.Value = append(lst.Value, b)
@@ -131,27 +132,27 @@ func (s *Server) HashValues(ctx context.Context, key *Key) (*List, error) {
 }
 
 // SetHash sets a hash in the cache.
-func (s *Server) SetHash(ctx context.Context, h *Hash) (*Null, error) {
+func (s *Server) SetHash(ctx context.Context, h *pb.Hash) (*pb.Null, error) {
 	key := h.Key
 	h.Key = ""
 	b, err := proto.Marshal(h)
 	if err != nil {
 		return null, err
 	}
-	_, err = s.Set(ctx, &ByteValue{Key: key, Value: b})
+	_, err = s.Set(ctx, &pb.ByteValue{Key: key, Value: b})
 	return null, err
 }
 
 // SetHashField sets a single field in a hash, creates new hash if does not exist.
-func (s *Server) SetHashField(ctx context.Context, hf *HashField) (*Null, error) {
-	key := &Key{Key: hf.Key}
+func (s *Server) SetHashField(ctx context.Context, hf *pb.HashField) (*pb.Null, error) {
+	key := &pb.Key{Key: hf.Key}
 	if _, err := s.Lock(ctx, key); err != nil {
 		return null, err
 	}
 
 	h, err := s.GetHash(ctx, key)
 	if err == etcdserver.ErrKeyNotFound {
-		h = &Hash{Value: map[string][]byte{}}
+		h = &pb.Hash{Value: map[string][]byte{}}
 	} else if err != nil {
 		s.Unlock(ctx, key)
 		return null, err
@@ -162,15 +163,15 @@ func (s *Server) SetHashField(ctx context.Context, hf *HashField) (*Null, error)
 }
 
 // SetHashFields sets multiple fields in a hash, creates new hash if does not exist.
-func (s *Server) SetHashFields(ctx context.Context, ah *Hash) (*Null, error) {
-	key := &Key{Key: ah.Key}
+func (s *Server) SetHashFields(ctx context.Context, ah *pb.Hash) (*pb.Null, error) {
+	key := &pb.Key{Key: ah.Key}
 	if _, err := s.Lock(ctx, key); err != nil {
 		return null, err
 	}
 
 	h, err := s.GetHash(ctx, key)
 	if err == etcdserver.ErrKeyNotFound {
-		h = &Hash{Value: map[string][]byte{}}
+		h = &pb.Hash{Value: map[string][]byte{}}
 	} else if err != nil {
 		s.Unlock(ctx, key)
 		return null, err
@@ -185,8 +186,8 @@ func (s *Server) SetHashFields(ctx context.Context, ah *Hash) (*Null, error) {
 }
 
 // DelHashField removes a field from a hash.
-func (s *Server) DelHashField(ctx context.Context, hf *HashField) (*Null, error) {
-	key := &Key{Key: hf.Key}
+func (s *Server) DelHashField(ctx context.Context, hf *pb.HashField) (*pb.Null, error) {
+	key := &pb.Key{Key: hf.Key}
 	if _, err := s.Lock(ctx, key); err != nil {
 		return null, err
 	}

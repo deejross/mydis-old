@@ -14,7 +14,7 @@
 
 syntax = "proto3";
 
-package mydis;
+package pb;
 
 import "google/api/annotations.proto";
 

@@ -17,6 +17,8 @@ package mydis
 import (
 	"testing"
 	"time"
+
+	"github.com/deejross/mydis/pb"
 )
 
 func TestClientSet(t *testing.T) {
@@ -498,11 +500,11 @@ func TestClientHashValues(t *testing.T) {
 }
 
 func TestClientProto(t *testing.T) {
-	if err := client.Set("proto1", &Event{Current: &ByteValue{Key: "test"}}); err != nil {
+	if err := client.Set("proto1", &pb.Event{Current: &pb.ByteValue{Key: "test"}}); err != nil {
 		t.Error(err)
 	}
 
-	ev := &Event{}
+	ev := &pb.Event{}
 	if err := client.Get("proto1").Proto(ev); err != nil {
 		t.Error(err)
 	} else if ev.Current.Key != "test" {

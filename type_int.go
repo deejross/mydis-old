@@ -18,18 +18,19 @@ import (
 	"strings"
 
 	"github.com/coreos/etcd/etcdserver"
+	"github.com/deejross/mydis/pb"
 	"github.com/gogo/protobuf/proto"
 	"golang.org/x/net/context"
 )
 
 // GetInt gets an integer value for the given key.
-func (s *Server) GetInt(ctx context.Context, key *Key) (*IntValue, error) {
+func (s *Server) GetInt(ctx context.Context, key *pb.Key) (*pb.IntValue, error) {
 	bv, err := s.Get(ctx, key)
 	if err != nil {
 		return nil, err
 	}
 
-	iv := &IntValue{}
+	iv := &pb.IntValue{}
 	if err := proto.Unmarshal(bv.Value, iv); err != nil && strings.HasPrefix(err.Error(), "proto: can't skip unknown wire type") {
 		return nil, ErrTypeMismatch
 	} else if err != nil {
@@ -39,44 +40,44 @@ func (s *Server) GetInt(ctx context.Context, key *Key) (*IntValue, error) {
 }
 
 // SetInt sets an integer.
-func (s *Server) SetInt(ctx context.Context, iv *IntValue) (*Null, error) {
+func (s *Server) SetInt(ctx context.Context, iv *pb.IntValue) (*pb.Null, error) {
 	b, err := proto.Marshal(iv)
 	if err != nil {
 		return null, err
 	}
-	return s.Set(ctx, &ByteValue{Key: iv.Key, Value: b})
+	return s.Set(ctx, &pb.ByteValue{Key: iv.Key, Value: b})
 }
 
 // IncrementInt increments an integer stored at the given key by the number and returns the new value.
-func (s *Server) IncrementInt(ctx context.Context, iv *IntValue) (*IntValue, error) {
-	key := &Key{Key: iv.Key}
+func (s *Server) IncrementInt(ctx context.Context, iv *pb.IntValue) (*pb.IntValue, error) {
+	key := &pb.Key{Key: iv.Key}
 	if _, err := s.Lock(ctx, key); err != nil {
 		return nil, err
 	}
 
 	oldiv, err := s.GetInt(ctx, key)
 	if err == etcdserver.ErrKeyNotFound {
-		oldiv = &IntValue{Value: 0}
+		oldiv = &pb.IntValue{Value: 0}
 	} else if err != nil {
 		s.Unlock(ctx, key)
 		return nil, err
 	}
 
-	newval := &IntValue{Value: oldiv.Value + iv.Value}
+	newval := &pb.IntValue{Value: oldiv.Value + iv.Value}
 	b, err := proto.Marshal(newval)
 	if err != nil {
 		s.Unlock(ctx, key)
 		return nil, err
 	}
 
-	if _, err := s.UnlockThenSet(ctx, &ByteValue{Key: iv.Key, Value: b}); err != nil {
+	if _, err := s.UnlockThenSet(ctx, &pb.ByteValue{Key: iv.Key, Value: b}); err != nil {
 		return nil, err
 	}
 	return newval, nil
 }
 
 // DecrementInt decrements an integer stored at the given key by the number and returns the new value.
-func (s *Server) DecrementInt(ctx context.Context, iv *IntValue) (*IntValue, error) {
+func (s *Server) DecrementInt(ctx context.Context, iv *pb.IntValue) (*pb.IntValue, error) {
 	iv.Value *= -1
 	return s.IncrementInt(ctx, iv)
 }

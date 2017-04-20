@@ -31,6 +31,7 @@ import (
 
 	"github.com/coreos/etcd/embed"
 	"github.com/coreos/pkg/capnslog"
+	"github.com/deejross/mydis/pb"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"google.golang.org/grpc/credentials"
 )
@@ -96,8 +97,8 @@ func (s *Server) Start(http1, http2 string) error {
 	}
 	s.gwsock = gwsock
 
-	RegisterMydisServer(s.server, s)
-	RegisterMydisHandlerFromEndpoint(context.Background(), s.gwmux, http2, []grpc.DialOption{grpc.WithTransportCredentials(credentials.NewTLS(s.tc))})
+	pb.RegisterMydisServer(s.server, s)
+	pb.RegisterMydisHandlerFromEndpoint(context.Background(), s.gwmux, http2, []grpc.DialOption{grpc.WithTransportCredentials(credentials.NewTLS(s.tc))})
 	s.gateway.Addr = http1
 	s.gateway.Handler = WebsocketProxy(s.gwmux)
 

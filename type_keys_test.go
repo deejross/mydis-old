@@ -17,6 +17,8 @@ package mydis
 import (
 	"testing"
 	"time"
+
+	"github.com/deejross/mydis/pb"
 )
 
 func TestKeys(t *testing.T) {
@@ -34,7 +36,7 @@ func TestKeys(t *testing.T) {
 func TestKeysWithPrefix(t *testing.T) {
 	testReset()
 
-	if lst, err := server.KeysWithPrefix(ctx, &Key{Key: "key"}); err != nil {
+	if lst, err := server.KeysWithPrefix(ctx, &pb.Key{Key: "key"}); err != nil {
 		t.Error(err)
 	} else if len(lst.Keys) == 0 {
 		t.Error("No keys returned")
@@ -46,7 +48,7 @@ func TestKeysWithPrefix(t *testing.T) {
 func TestHas(t *testing.T) {
 	testReset()
 
-	if b, err := server.Has(ctx, &Key{Key: "key1"}); err != nil {
+	if b, err := server.Has(ctx, &pb.Key{Key: "key1"}); err != nil {
 		t.Error(err)
 	} else if b.Value == false {
 		t.Error("Expected key not found")
@@ -56,10 +58,10 @@ func TestHas(t *testing.T) {
 func TestSetExpire(t *testing.T) {
 	testReset()
 
-	if _, err := server.SetExpire(ctx, &Expiration{Key: "key1", Exp: 1}); err != nil {
+	if _, err := server.SetExpire(ctx, &pb.Expiration{Key: "key1", Exp: 1}); err != nil {
 		t.Error(err)
 	}
-	if b, err := server.Has(ctx, &Key{Key: "key1"}); err != nil {
+	if b, err := server.Has(ctx, &pb.Key{Key: "key1"}); err != nil {
 		t.Error(err)
 	} else if b.Value == false {
 		t.Error("Expected key not found")
@@ -67,11 +69,11 @@ func TestSetExpire(t *testing.T) {
 
 	t.Log("INFO: Waiting two seconds for key expiration")
 	time.Sleep(2000 * time.Millisecond)
-	if b, err := server.Has(ctx, &Key{Key: "key1"}); err != nil {
+	if b, err := server.Has(ctx, &pb.Key{Key: "key1"}); err != nil {
 		t.Error(err)
 	} else if b.Value {
 		t.Error("Unexpected key found")
-		s, err := server.Get(ctx, &Key{Key: "key1"})
+		s, err := server.Get(ctx, &pb.Key{Key: "key1"})
 		t.Log("Key value:", s.Value, err)
 	}
 }
@@ -79,10 +81,10 @@ func TestSetExpire(t *testing.T) {
 func TestDelete(t *testing.T) {
 	testReset()
 
-	if _, err := server.Delete(ctx, &Key{Key: "key1"}); err != nil {
+	if _, err := server.Delete(ctx, &pb.Key{Key: "key1"}); err != nil {
 		t.Error(err)
 	}
-	if b, err := server.Has(ctx, &Key{Key: "key1"}); err != nil {
+	if b, err := server.Has(ctx, &pb.Key{Key: "key1"}); err != nil {
 		t.Error(err)
 	} else if b.Value {
 		t.Error("Unexpected key found")

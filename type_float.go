@@ -18,18 +18,19 @@ import (
 	"strings"
 
 	"github.com/coreos/etcd/etcdserver"
+	"github.com/deejross/mydis/pb"
 	"github.com/gogo/protobuf/proto"
 	"golang.org/x/net/context"
 )
 
 // GetFloat gets a float value for the given key.
-func (s *Server) GetFloat(ctx context.Context, key *Key) (*FloatValue, error) {
+func (s *Server) GetFloat(ctx context.Context, key *pb.Key) (*pb.FloatValue, error) {
 	bv, err := s.Get(ctx, key)
 	if err != nil {
 		return nil, err
 	}
 
-	fv := &FloatValue{}
+	fv := &pb.FloatValue{}
 	if err := proto.Unmarshal(bv.Value, fv); err != nil && strings.HasPrefix(err.Error(), "proto: can't skip unknown wire type") {
 		return nil, ErrTypeMismatch
 	} else if err != nil {
@@ -39,44 +40,44 @@ func (s *Server) GetFloat(ctx context.Context, key *Key) (*FloatValue, error) {
 }
 
 // SetFloat sets a float.
-func (s *Server) SetFloat(ctx context.Context, fv *FloatValue) (*Null, error) {
+func (s *Server) SetFloat(ctx context.Context, fv *pb.FloatValue) (*pb.Null, error) {
 	b, err := proto.Marshal(fv)
 	if err != nil {
 		return nil, err
 	}
-	return s.Set(ctx, &ByteValue{Key: fv.Key, Value: b})
+	return s.Set(ctx, &pb.ByteValue{Key: fv.Key, Value: b})
 }
 
 // IncrementFloat increments a float stored at the given key by the number and returns the new value.
-func (s *Server) IncrementFloat(ctx context.Context, fv *FloatValue) (*FloatValue, error) {
-	key := &Key{Key: fv.Key}
+func (s *Server) IncrementFloat(ctx context.Context, fv *pb.FloatValue) (*pb.FloatValue, error) {
+	key := &pb.Key{Key: fv.Key}
 	if _, err := s.Lock(ctx, key); err != nil {
 		return nil, err
 	}
 
 	oldfv, err := s.GetFloat(ctx, key)
 	if err == etcdserver.ErrKeyNotFound {
-		oldfv = &FloatValue{Value: 0}
+		oldfv = &pb.FloatValue{Value: 0}
 	} else if err != nil {
 		s.Unlock(ctx, key)
 		return nil, err
 	}
 
-	newval := &FloatValue{Value: oldfv.Value + fv.Value}
+	newval := &pb.FloatValue{Value: oldfv.Value + fv.Value}
 	b, err := proto.Marshal(newval)
 	if err != nil {
 		s.Unlock(ctx, key)
 		return nil, err
 	}
 
-	if _, err := s.UnlockThenSet(ctx, &ByteValue{Key: fv.Key, Value: b}); err != nil {
+	if _, err := s.UnlockThenSet(ctx, &pb.ByteValue{Key: fv.Key, Value: b}); err != nil {
 		return nil, err
 	}
 	return newval, nil
 }
 
 // DecrementFloat decrements a float stored at the given key by the number and returns the new value.
-func (s *Server) DecrementFloat(ctx context.Context, fv *FloatValue) (*FloatValue, error) {
+func (s *Server) DecrementFloat(ctx context.Context, fv *pb.FloatValue) (*pb.FloatValue, error) {
 	fv.Value *= -1
 	return s.IncrementFloat(ctx, fv)
 }

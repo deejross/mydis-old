@@ -14,22 +14,26 @@
 
 package mydis
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/deejross/mydis/pb"
+)
 
 func TestSetFloat(t *testing.T) {
-	if _, err := server.SetFloat(ctx, &FloatValue{Key: "float1", Value: 42.5}); err != nil {
+	if _, err := server.SetFloat(ctx, &pb.FloatValue{Key: "float1", Value: 42.5}); err != nil {
 		t.Error(err)
 	}
 }
 
 func TestGetFloat(t *testing.T) {
-	if fv, err := server.GetFloat(ctx, &Key{Key: "float1"}); err != nil {
+	if fv, err := server.GetFloat(ctx, &pb.Key{Key: "float1"}); err != nil {
 		t.Error(err)
 	} else if fv.Value != 42.5 {
 		t.Error("Unexpected value:", fv.Value)
 	}
 
-	if _, err := server.GetFloat(ctx, &Key{Key: "key1"}); err == nil {
+	if _, err := server.GetFloat(ctx, &pb.Key{Key: "key1"}); err == nil {
 		t.Error("Expected error but got nothing")
 	}
 }
@@ -37,28 +41,28 @@ func TestGetFloat(t *testing.T) {
 func TestIncrementFloat(t *testing.T) {
 	testReset()
 
-	if _, err := server.SetFloat(ctx, &FloatValue{Key: "float1", Value: 42.5}); err != nil {
+	if _, err := server.SetFloat(ctx, &pb.FloatValue{Key: "float1", Value: 42.5}); err != nil {
 		t.Error(err)
 	}
 
-	if fv, err := server.IncrementFloat(ctx, &FloatValue{Key: "float1", Value: 10.1}); err != nil {
+	if fv, err := server.IncrementFloat(ctx, &pb.FloatValue{Key: "float1", Value: 10.1}); err != nil {
 		t.Error(err)
 	} else if fv.Value != 52.6 {
 		t.Error("Unexpected value:", fv.Value)
 	}
-	if fv, err := server.GetFloat(ctx, &Key{Key: "float1"}); err != nil {
+	if fv, err := server.GetFloat(ctx, &pb.Key{Key: "float1"}); err != nil {
 		t.Error(err)
 	} else if fv.Value != 52.6 {
 		t.Error("New value not committed")
 	}
 
-	if fv, err := server.IncrementFloat(ctx, &FloatValue{Key: "newFloat", Value: 42.5}); err != nil {
+	if fv, err := server.IncrementFloat(ctx, &pb.FloatValue{Key: "newFloat", Value: 42.5}); err != nil {
 		t.Error(err)
 	} else if fv.Value != 42.5 {
 		t.Error("Unexpected value:", fv.Value)
 	}
 
-	if fv, err := server.GetFloat(ctx, &Key{Key: "newFloat"}); err != nil {
+	if fv, err := server.GetFloat(ctx, &pb.Key{Key: "newFloat"}); err != nil {
 		t.Error(err)
 	} else if fv.Value != 42.5 {
 		t.Error("New value not committed, got:", fv.Value)
@@ -68,28 +72,28 @@ func TestIncrementFloat(t *testing.T) {
 func TestDecrementFloat(t *testing.T) {
 	testReset()
 
-	if _, err := server.SetFloat(ctx, &FloatValue{Key: "float1", Value: 42.5}); err != nil {
+	if _, err := server.SetFloat(ctx, &pb.FloatValue{Key: "float1", Value: 42.5}); err != nil {
 		t.Error(err)
 	}
 
-	if fv, err := server.DecrementFloat(ctx, &FloatValue{Key: "float1", Value: 10.1}); err != nil {
+	if fv, err := server.DecrementFloat(ctx, &pb.FloatValue{Key: "float1", Value: 10.1}); err != nil {
 		t.Error(err)
 	} else if fv.Value != 32.4 {
 		t.Error("Unexpected value:", fv.Value)
 	}
-	if fv, err := server.GetFloat(ctx, &Key{Key: "float1"}); err != nil {
+	if fv, err := server.GetFloat(ctx, &pb.Key{Key: "float1"}); err != nil {
 		t.Error(err)
 	} else if fv.Value != 32.4 {
 		t.Error("New value not committed")
 	}
 
-	if fv, err := server.DecrementFloat(ctx, &FloatValue{Key: "newFloat", Value: 42.5}); err != nil {
+	if fv, err := server.DecrementFloat(ctx, &pb.FloatValue{Key: "newFloat", Value: 42.5}); err != nil {
 		t.Error(err)
 	} else if fv.Value != -42.5 {
 		t.Error("Unexpected value:", fv.Value)
 	}
 
-	if fv, err := server.GetFloat(ctx, &Key{Key: "newFloat"}); err != nil {
+	if fv, err := server.GetFloat(ctx, &pb.Key{Key: "newFloat"}); err != nil {
 		t.Error(err)
 	} else if fv.Value != -42.5 {
 		t.Error("New value not committed, got:", fv.Value)

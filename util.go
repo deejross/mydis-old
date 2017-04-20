@@ -25,13 +25,14 @@ import (
 	"crypto/tls"
 
 	"github.com/coreos/etcd/embed"
-	pb "github.com/coreos/etcd/etcdserver/etcdserverpb"
+	etcdpb "github.com/coreos/etcd/etcdserver/etcdserverpb"
 	"github.com/coreos/etcd/mvcc/mvccpb"
+	"github.com/deejross/mydis/pb"
 	"github.com/ghodss/yaml"
 	"github.com/golang/protobuf/proto"
 )
 
-var null = &Null{}
+var null = &pb.Null{}
 var suffixForKeysUsingPrefix = "*_MYDIS_WITHPREFIX"
 var suffixForLocks = "*_MYDIS_LOCK"
 
@@ -67,58 +68,58 @@ func NewValue(t interface{}) Value {
 		b, _ := proto.Marshal(t)
 		return Value{b: b}
 	case int:
-		b, _ := proto.Marshal(&IntValue{Value: int64(t)})
+		b, _ := proto.Marshal(&pb.IntValue{Value: int64(t)})
 		return Value{b: b}
 	case int8:
-		b, _ := proto.Marshal(&IntValue{Value: int64(t)})
+		b, _ := proto.Marshal(&pb.IntValue{Value: int64(t)})
 		return Value{b: b}
 	case int16:
-		b, _ := proto.Marshal(&IntValue{Value: int64(t)})
+		b, _ := proto.Marshal(&pb.IntValue{Value: int64(t)})
 		return Value{b: b}
 	case int32:
-		b, _ := proto.Marshal(&IntValue{Value: int64(t)})
+		b, _ := proto.Marshal(&pb.IntValue{Value: int64(t)})
 		return Value{b: b}
 	case int64:
-		b, _ := proto.Marshal(&IntValue{Value: t})
+		b, _ := proto.Marshal(&pb.IntValue{Value: t})
 		return Value{b: b}
 	case float32:
-		b, _ := proto.Marshal(&FloatValue{Value: float64(t)})
+		b, _ := proto.Marshal(&pb.FloatValue{Value: float64(t)})
 		return Value{b: b}
 	case float64:
-		b, _ := proto.Marshal(&FloatValue{Value: t})
+		b, _ := proto.Marshal(&pb.FloatValue{Value: t})
 		return Value{b: b}
 	case time.Time:
-		b, _ := proto.Marshal(&IntValue{Value: int64(t.Nanosecond())})
+		b, _ := proto.Marshal(&pb.IntValue{Value: int64(t.Nanosecond())})
 		return Value{b: b}
 	case time.Duration:
-		b, _ := proto.Marshal(&IntValue{Value: t.Nanoseconds()})
+		b, _ := proto.Marshal(&pb.IntValue{Value: t.Nanoseconds()})
 		return Value{b: b}
 	case [][]byte:
-		b, _ := proto.Marshal(&List{Value: t})
+		b, _ := proto.Marshal(&pb.List{Value: t})
 		return Value{b: b}
 	case []string:
-		b, _ := proto.Marshal(&List{Value: ListStringToBytes(t)})
+		b, _ := proto.Marshal(&pb.List{Value: ListStringToBytes(t)})
 		return Value{b: b}
 	case []Value:
-		b, _ := proto.Marshal(&List{Value: ListValueToBytes(t)})
+		b, _ := proto.Marshal(&pb.List{Value: ListValueToBytes(t)})
 		return Value{b: b}
 	case map[string]string:
-		b, _ := proto.Marshal(&Hash{Value: MapStringToMapBytes(t)})
+		b, _ := proto.Marshal(&pb.Hash{Value: MapStringToMapBytes(t)})
 		return Value{b: b}
 	case map[string][]byte:
-		b, _ := proto.Marshal(&Hash{Value: t})
+		b, _ := proto.Marshal(&pb.Hash{Value: t})
 		return Value{b: b}
 	case map[string]bool:
-		b, _ := proto.Marshal(&Hash{Value: MapBoolToMapBytes(t)})
+		b, _ := proto.Marshal(&pb.Hash{Value: MapBoolToMapBytes(t)})
 		return Value{b: b}
 	case map[string]int64:
-		b, _ := proto.Marshal(&Hash{Value: MapIntToMapBytes(t)})
+		b, _ := proto.Marshal(&pb.Hash{Value: MapIntToMapBytes(t)})
 		return Value{b: b}
 	case map[string]float64:
-		b, _ := proto.Marshal(&Hash{Value: MapFloatToMapBytes(t)})
+		b, _ := proto.Marshal(&pb.Hash{Value: MapFloatToMapBytes(t)})
 		return Value{b: b}
 	case map[string]Value:
-		b, _ := proto.Marshal(&Hash{Value: MapValueToMapBytes(t)})
+		b, _ := proto.Marshal(&pb.Hash{Value: MapValueToMapBytes(t)})
 		return Value{b: b}
 	default:
 		return Value{err: errors.New("Unknown type, recommend marshalling to byte slice")}
@@ -174,7 +175,7 @@ func (v Value) Proto(pb proto.Message) error {
 
 // Int returns the Value as an int64.
 func (v Value) Int() (int64, error) {
-	iv := &IntValue{}
+	iv := &pb.IntValue{}
 	if err := v.Proto(iv); err != nil {
 		return 0, err
 	}
@@ -183,7 +184,7 @@ func (v Value) Int() (int64, error) {
 
 // Float returns the Value as a flat64.
 func (v Value) Float() (float64, error) {
-	fv := &FloatValue{}
+	fv := &pb.FloatValue{}
 	if err := v.Proto(fv); err != nil {
 		return 0, err
 	}
@@ -192,7 +193,7 @@ func (v Value) Float() (float64, error) {
 
 // Time returns the Value as a Time.
 func (v Value) Time() (time.Time, error) {
-	iv := &IntValue{}
+	iv := &pb.IntValue{}
 	if err := v.Proto(iv); err != nil {
 		return time.Time{}, err
 	}
@@ -201,7 +202,7 @@ func (v Value) Time() (time.Time, error) {
 
 // Duration returns the Value as a Duration.
 func (v Value) Duration() (time.Duration, error) {
-	iv := &IntValue{}
+	iv := &pb.IntValue{}
 	if err := v.Proto(iv); err != nil {
 		return 0, err
 	}
@@ -210,7 +211,7 @@ func (v Value) Duration() (time.Duration, error) {
 
 // List returns the Value as a List.
 func (v Value) List() ([]Value, error) {
-	lst := &List{}
+	lst := &pb.List{}
 	if err := v.Proto(lst); err != nil {
 		return nil, err
 	}
@@ -219,7 +220,7 @@ func (v Value) List() ([]Value, error) {
 
 // Map returns the Value as a Map.
 func (v Value) Map() (map[string]Value, error) {
-	h := &Hash{}
+	h := &pb.Hash{}
 	if err := v.Proto(h); err != nil {
 		return nil, err
 	}
@@ -388,16 +389,16 @@ func getLockName(key string) []byte {
 	return StringToBytes(key + suffixForLocks)
 }
 
-func kvsToList(kvs []*mvccpb.KeyValue) *KeysList {
-	lst := &KeysList{Keys: []string{}}
+func kvsToList(kvs []*mvccpb.KeyValue) *pb.KeysList {
+	lst := &pb.KeysList{Keys: []string{}}
 	for _, kv := range kvs {
 		lst.Keys = append(lst.Keys, BytesToString(kv.Key))
 	}
 	return lst
 }
 
-func getRangeRequestFromKey(key *Key) *pb.RangeRequest {
-	req := &pb.RangeRequest{
+func getRangeRequestFromKey(key *pb.Key) *etcdpb.RangeRequest {
+	req := &etcdpb.RangeRequest{
 		Key: StringToBytes(key.Key),
 	}
 	if key.Limit > 0 {
@@ -435,21 +436,21 @@ func GetKeyPrefix(key string) (bkey []byte, rangEnd []byte) {
 }
 
 // GetPermission returns a new Permission object for the given information or nil if permName unrecognized.
-func GetPermission(key string, permName string) *Permission {
+func GetPermission(key string, permName string) *pb.Permission {
 	bkey, rangeEnd := GetKeyPrefix(key)
-	permType, ok := Permission_Type_value[strings.ToUpper(strings.TrimSpace(permName))]
+	permType, ok := pb.Permission_Type_value[strings.ToUpper(strings.TrimSpace(permName))]
 	if !ok {
 		return nil
 	}
 
-	return &Permission{
+	return &pb.Permission{
 		Key:      bkey,
 		RangeEnd: rangeEnd,
-		PermType: Permission_Type(permType),
+		PermType: pb.Permission_Type(permType),
 	}
 }
 
-func enforceListLimit(lst *List) {
+func enforceListLimit(lst *pb.List) {
 	if lst.Limit == 0 {
 		return
 	}

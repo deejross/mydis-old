@@ -18,12 +18,14 @@ import (
 	"bytes"
 	"testing"
 	"time"
+
+	"github.com/deejross/mydis/pb"
 )
 
 func TestSetList(t *testing.T) {
 	testReset()
 
-	if _, err := server.SetList(ctx, &List{
+	if _, err := server.SetList(ctx, &pb.List{
 		Key: "list1",
 		Value: [][]byte{
 			[]byte("val1"),
@@ -36,7 +38,7 @@ func TestSetList(t *testing.T) {
 }
 
 func TestGetList(t *testing.T) {
-	if lst, err := server.GetList(ctx, &Key{Key: "list1"}); err != nil {
+	if lst, err := server.GetList(ctx, &pb.Key{Key: "list1"}); err != nil {
 		t.Error(err)
 	} else if len(lst.Value) != 3 {
 		t.Error("Unexpected response:", lst.Value)
@@ -46,31 +48,31 @@ func TestGetList(t *testing.T) {
 }
 
 func TestGetListItem(t *testing.T) {
-	if bv, err := server.GetListItem(ctx, &ListItem{Key: "list1", Index: 1}); err != nil {
+	if bv, err := server.GetListItem(ctx, &pb.ListItem{Key: "list1", Index: 1}); err != nil {
 		t.Error(err)
 	} else if !bytes.Equal(bv.Value, []byte("val2")) {
 		t.Error("Unexpected value:", bv.Value)
 	}
 
-	if bv, err := server.GetListItem(ctx, &ListItem{Key: "list1", Index: 100}); err != nil {
+	if bv, err := server.GetListItem(ctx, &pb.ListItem{Key: "list1", Index: 100}); err != nil {
 		t.Error(err)
 	} else if !bytes.Equal(bv.Value, []byte("val3")) {
 		t.Error("Unexpected value:", bv.Value)
 	}
 
-	if bv, err := server.GetListItem(ctx, &ListItem{Key: "list1", Index: -1}); err != nil {
+	if bv, err := server.GetListItem(ctx, &pb.ListItem{Key: "list1", Index: -1}); err != nil {
 		t.Error(err)
 	} else if !bytes.Equal(bv.Value, []byte("val3")) {
 		t.Error("Unexpected value:", bv.Value)
 	}
 
-	if bv, err := server.GetListItem(ctx, &ListItem{Key: "list1", Index: -3}); err != nil {
+	if bv, err := server.GetListItem(ctx, &pb.ListItem{Key: "list1", Index: -3}); err != nil {
 		t.Error(err)
 	} else if !bytes.Equal(bv.Value, []byte("val1")) {
 		t.Error("Unexpected value:", bv.Value)
 	}
 
-	if bv, err := server.GetListItem(ctx, &ListItem{Key: "list1", Index: -100}); err != nil {
+	if bv, err := server.GetListItem(ctx, &pb.ListItem{Key: "list1", Index: -100}); err != nil {
 		t.Error(err)
 	} else if !bytes.Equal(bv.Value, []byte("val1")) {
 		t.Error("Unexpected value:", bv.Value)
@@ -78,21 +80,21 @@ func TestGetListItem(t *testing.T) {
 }
 
 func TestSetListItem(t *testing.T) {
-	if _, err := server.SetListItem(ctx, &ListItem{Key: "list1", Index: 2, Value: []byte("end")}); err != nil {
+	if _, err := server.SetListItem(ctx, &pb.ListItem{Key: "list1", Index: 2, Value: []byte("end")}); err != nil {
 		t.Error(err)
 	}
-	if bv, err := server.GetListItem(ctx, &ListItem{Key: "list1", Index: 2}); err != nil {
+	if bv, err := server.GetListItem(ctx, &pb.ListItem{Key: "list1", Index: 2}); err != nil {
 		t.Error(err)
 	} else if !bytes.Equal(bv.Value, []byte("end")) {
 		t.Error("Unexpected value:", bv.Value)
 	}
-	if _, err := server.SetListItem(ctx, &ListItem{Key: "list1", Index: 10, Value: []byte("fail")}); err != ErrListIndexOutOfRange {
+	if _, err := server.SetListItem(ctx, &pb.ListItem{Key: "list1", Index: 10, Value: []byte("fail")}); err != ErrListIndexOutOfRange {
 		t.Error("Expected ErrListIndexOutOfRange")
 	}
 }
 
 func TestListLength(t *testing.T) {
-	if iv, err := server.ListLength(ctx, &Key{Key: "list1"}); err != nil {
+	if iv, err := server.ListLength(ctx, &pb.Key{Key: "list1"}); err != nil {
 		t.Error(err)
 	} else if iv.Value != 3 {
 		t.Error("Unexpected value:", iv.Value)
@@ -100,11 +102,11 @@ func TestListLength(t *testing.T) {
 }
 
 func TestListInsert(t *testing.T) {
-	if _, err := server.ListInsert(ctx, &ListItem{Key: "list1", Index: 0, Value: []byte("start")}); err != nil {
+	if _, err := server.ListInsert(ctx, &pb.ListItem{Key: "list1", Index: 0, Value: []byte("start")}); err != nil {
 		t.Error(err)
 	}
 
-	if lst, err := server.GetList(ctx, &Key{Key: "list1"}); err != nil {
+	if lst, err := server.GetList(ctx, &pb.Key{Key: "list1"}); err != nil {
 		t.Error(err)
 	} else if len(lst.Value) != 4 {
 		t.Error("Unexpected response:", lst.Value)
@@ -114,11 +116,11 @@ func TestListInsert(t *testing.T) {
 }
 
 func TestListAppend(t *testing.T) {
-	if _, err := server.ListAppend(ctx, &ListItem{Key: "list1", Value: []byte("end again")}); err != nil {
+	if _, err := server.ListAppend(ctx, &pb.ListItem{Key: "list1", Value: []byte("end again")}); err != nil {
 		t.Error(err)
 	}
 
-	if lst, err := server.GetList(ctx, &Key{Key: "list1"}); err != nil {
+	if lst, err := server.GetList(ctx, &pb.Key{Key: "list1"}); err != nil {
 		t.Error(err)
 	} else if len(lst.Value) != 5 {
 		t.Error("Unexpected response:", lst.Value)
@@ -128,14 +130,14 @@ func TestListAppend(t *testing.T) {
 }
 
 func TestListLimit(t *testing.T) {
-	if _, err := server.ListLimit(ctx, &ListItem{Key: "list1", Index: 5}); err != nil {
+	if _, err := server.ListLimit(ctx, &pb.ListItem{Key: "list1", Index: 5}); err != nil {
 		t.Error(err)
 	}
-	if _, err := server.ListAppend(ctx, &ListItem{Key: "list1", Value: []byte("end again2")}); err != nil {
+	if _, err := server.ListAppend(ctx, &pb.ListItem{Key: "list1", Value: []byte("end again2")}); err != nil {
 		t.Error(err)
 	}
 
-	if lst, err := server.GetList(ctx, &Key{Key: "list1"}); err != nil {
+	if lst, err := server.GetList(ctx, &pb.Key{Key: "list1"}); err != nil {
 		t.Error(err)
 	} else if len(lst.Value) != 5 {
 		t.Error("Unexpected response:", lst.Value)
@@ -147,12 +149,12 @@ func TestListLimit(t *testing.T) {
 }
 
 func TestListPopLeft(t *testing.T) {
-	if bv, err := server.ListPopLeft(ctx, &Key{Key: "list1"}); err != nil {
+	if bv, err := server.ListPopLeft(ctx, &pb.Key{Key: "list1"}); err != nil {
 		t.Error(err)
 	} else if !bytes.Equal(bv.Value, []byte("val1")) {
 		t.Error("Unexpected value:", bv.Value)
 	}
-	if bv, err := server.GetListItem(ctx, &ListItem{Key: "list1", Index: 0}); err != nil {
+	if bv, err := server.GetListItem(ctx, &pb.ListItem{Key: "list1", Index: 0}); err != nil {
 		t.Error(err)
 	} else if !bytes.Equal(bv.Value, []byte("val2")) {
 		t.Error("Unexpected value:", bv.Value)
@@ -160,12 +162,12 @@ func TestListPopLeft(t *testing.T) {
 }
 
 func TestListPopRight(t *testing.T) {
-	if bv, err := server.ListPopRight(ctx, &Key{Key: "list1"}); err != nil {
+	if bv, err := server.ListPopRight(ctx, &pb.Key{Key: "list1"}); err != nil {
 		t.Error(err)
 	} else if !bytes.Equal(bv.Value, []byte("end again2")) {
 		t.Error("Unexpected value:", bv.Value)
 	}
-	if bv, err := server.GetListItem(ctx, &ListItem{Key: "list1", Index: -1}); err != nil {
+	if bv, err := server.GetListItem(ctx, &pb.ListItem{Key: "list1", Index: -1}); err != nil {
 		t.Error(err)
 	} else if !bytes.Equal(bv.Value, []byte("end again")) {
 		t.Error("Unexpected value:", bv.Value)
@@ -173,19 +175,19 @@ func TestListPopRight(t *testing.T) {
 }
 
 func TestListHas(t *testing.T) {
-	if iv, err := server.ListHas(ctx, &ListItem{Key: "list1", Value: []byte("end")}); err != nil {
+	if iv, err := server.ListHas(ctx, &pb.ListItem{Key: "list1", Value: []byte("end")}); err != nil {
 		t.Error(err)
 	} else if iv.Value != 1 {
 		t.Error("Unexpected value:", iv.Value)
 	}
 
-	if iv, err := server.ListHas(ctx, &ListItem{Key: "list1", Value: []byte("nothing")}); err != nil {
+	if iv, err := server.ListHas(ctx, &pb.ListItem{Key: "list1", Value: []byte("nothing")}); err != nil {
 		t.Error(err)
 	} else if iv.Value != -1 {
 		t.Error("Unexpected value:", iv.Value)
 	}
 
-	if iv, err := server.ListHas(ctx, &ListItem{Key: "nothing", Value: []byte("nothing")}); err != nil {
+	if iv, err := server.ListHas(ctx, &pb.ListItem{Key: "nothing", Value: []byte("nothing")}); err != nil {
 		t.Error(err)
 	} else if iv.Value != -1 {
 		t.Error("Unexpected value:", iv.Value)
@@ -194,20 +196,20 @@ func TestListHas(t *testing.T) {
 
 func TestListDelete(t *testing.T) {
 	count := int64(0)
-	if iv, err := server.ListLength(ctx, &Key{Key: "list1"}); err != nil {
+	if iv, err := server.ListLength(ctx, &pb.Key{Key: "list1"}); err != nil {
 		t.Error(err)
 	} else {
 		count = iv.Value
 	}
 
-	if _, err := server.ListDelete(ctx, &ListItem{Key: "list1", Index: 0}); err != nil {
+	if _, err := server.ListDelete(ctx, &pb.ListItem{Key: "list1", Index: 0}); err != nil {
 		t.Error(err)
 	}
-	if _, err := server.ListDelete(ctx, &ListItem{Key: "list1", Index: 10}); err != ErrListIndexOutOfRange {
+	if _, err := server.ListDelete(ctx, &pb.ListItem{Key: "list1", Index: 10}); err != ErrListIndexOutOfRange {
 		t.Error("Expected ErrListIndexOutOfRange")
 	}
 
-	if iv, err := server.ListLength(ctx, &Key{Key: "list1"}); err != nil {
+	if iv, err := server.ListLength(ctx, &pb.Key{Key: "list1"}); err != nil {
 		t.Error(err)
 	} else if iv.Value != count-1 {
 		t.Error("Unexpected value:", iv.Value)
@@ -215,25 +217,25 @@ func TestListDelete(t *testing.T) {
 }
 
 func TestListDeleteItem(t *testing.T) {
-	if iv, err := server.ListDeleteItem(ctx, &ListItem{Key: "list1", Value: []byte("end")}); err != nil {
+	if iv, err := server.ListDeleteItem(ctx, &pb.ListItem{Key: "list1", Value: []byte("end")}); err != nil {
 		t.Error(err)
 	} else if iv.Value != 0 {
 		t.Error("Unexpected value:", iv.Value)
 	}
 
-	if iv, err := server.ListHas(ctx, &ListItem{Key: "list1", Value: []byte("end")}); err != nil {
+	if iv, err := server.ListHas(ctx, &pb.ListItem{Key: "list1", Value: []byte("end")}); err != nil {
 		t.Error(err)
 	} else if iv.Value != -1 {
 		t.Error("Unexpected value:", iv.Value)
 	}
 
-	if iv, err := server.ListDeleteItem(ctx, &ListItem{Key: "list1", Value: []byte("nothing")}); err != nil {
+	if iv, err := server.ListDeleteItem(ctx, &pb.ListItem{Key: "list1", Value: []byte("nothing")}); err != nil {
 		t.Error(err)
 	} else if iv.Value != -1 {
 		t.Error("Unexpected value:", iv.Value)
 	}
 
-	if iv, err := server.ListDeleteItem(ctx, &ListItem{Key: "nothing", Value: []byte("nothing")}); err != nil {
+	if iv, err := server.ListDeleteItem(ctx, &pb.ListItem{Key: "nothing", Value: []byte("nothing")}); err != nil {
 		t.Error(err)
 	} else if iv.Value != -1 {
 		t.Error("Unexpected value:", iv.Value)
@@ -241,18 +243,18 @@ func TestListDeleteItem(t *testing.T) {
 }
 
 func TestListPopLeftBlocking(t *testing.T) {
-	if _, err := server.Delete(ctx, &Key{Key: "listBlock"}); err != nil {
+	if _, err := server.Delete(ctx, &pb.Key{Key: "listBlock"}); err != nil {
 		t.Error(err)
 	}
 
 	go func() {
 		time.Sleep(100 * time.Millisecond)
-		if _, err := server.ListAppend(ctx, &ListItem{Key: "listBlock", Value: []byte("test")}); err != nil {
+		if _, err := server.ListAppend(ctx, &pb.ListItem{Key: "listBlock", Value: []byte("test")}); err != nil {
 			t.Error(err)
 		}
 	}()
 
-	if bv, err := server.ListPopLeft(ctx, &Key{Key: "listBlock", Block: true, BlockTimeout: 1}); err != nil {
+	if bv, err := server.ListPopLeft(ctx, &pb.Key{Key: "listBlock", Block: true, BlockTimeout: 1}); err != nil {
 		t.Error(err)
 	} else if len(bv.Value) != 4 {
 		t.Error("Unexpected value:", bv.Value)
@@ -260,18 +262,18 @@ func TestListPopLeftBlocking(t *testing.T) {
 }
 
 func TestListPopRightBlocking(t *testing.T) {
-	if _, err := server.Delete(ctx, &Key{Key: "listBlock"}); err != nil {
+	if _, err := server.Delete(ctx, &pb.Key{Key: "listBlock"}); err != nil {
 		t.Error(err)
 	}
 
 	go func() {
 		time.Sleep(100 * time.Millisecond)
-		if _, err := server.ListAppend(ctx, &ListItem{Key: "listBlock", Value: []byte("test")}); err != nil {
+		if _, err := server.ListAppend(ctx, &pb.ListItem{Key: "listBlock", Value: []byte("test")}); err != nil {
 			t.Error(err)
 		}
 	}()
 
-	if bv, err := server.ListPopRight(ctx, &Key{Key: "listBlock", Block: true, BlockTimeout: 1}); err != nil {
+	if bv, err := server.ListPopRight(ctx, &pb.Key{Key: "listBlock", Block: true, BlockTimeout: 1}); err != nil {
 		t.Error(err)
 	} else if len(bv.Value) != 4 {
 		t.Error("Unexpected value:", bv.Value)

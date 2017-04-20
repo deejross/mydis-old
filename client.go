@@ -26,6 +26,7 @@ import (
 
 	"crypto/tls"
 
+	"github.com/deejross/mydis/pb"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -135,15 +136,15 @@ type Client struct {
 	ctx       context.Context
 	closeCh   chan struct{}
 	closing   bool
-	reqCh     chan *WatchRequest
+	reqCh     chan *pb.WatchRequest
 	resCh     chan struct{}
 	socket    *grpc.ClientConn
-	stream    Mydis_WatchClient
-	mc        MydisClient
+	stream    pb.Mydis_WatchClient
+	mc        pb.MydisClient
 	lock      sync.RWMutex
 	newID     int64
 	watching  map[string]struct{}
-	watchers  map[int64]chan *Event
+	watchers  map[int64]chan *pb.Event
 }
 
 // NewClient returns a new Client object.
@@ -178,12 +179,12 @@ func NewClient(config ClientConfig) (*Client, error) {
 		config:   config,
 		ctx:      ctx,
 		closeCh:  make(chan struct{}),
-		reqCh:    make(chan *WatchRequest),
+		reqCh:    make(chan *pb.WatchRequest),
 		resCh:    make(chan struct{}),
 		socket:   socket,
-		mc:       NewMydisClient(socket),
+		mc:       pb.NewMydisClient(socket),
 		watching: map[string]struct{}{},
-		watchers: map[int64]chan *Event{},
+		watchers: map[int64]chan *pb.Event{},
 	}
 
 	go client.backgroundProcess()
@@ -212,7 +213,7 @@ func (c *Client) Keys() ([]string, error) {
 
 // KeysWithPrefix returns a list of keys with the given prefix.
 func (c *Client) KeysWithPrefix(prefix string) ([]string, error) {
-	res, err := c.mc.KeysWithPrefix(c.ctx, &Key{Key: prefix})
+	res, err := c.mc.KeysWithPrefix(c.ctx, &pb.Key{Key: prefix})
 	if err != nil {
 		err = normalizeError(err)
 		return nil, err
@@ -222,7 +223,7 @@ func (c *Client) KeysWithPrefix(prefix string) ([]string, error) {
 
 // Has checks if the cache has the given key.
 func (c *Client) Has(key string) (bool, error) {
-	res, err := c.mc.Has(c.ctx, &Key{Key: key})
+	res, err := c.mc.Has(c.ctx, &pb.Key{Key: key})
 	if err != nil {
 		err = normalizeError(err)
 		return false, err
@@ -232,7 +233,7 @@ func (c *Client) Has(key string) (bool, error) {
 
 // SetExpire sets the expiration on a key in seconds.
 func (c *Client) SetExpire(key string, seconds int64) error {
-	_, err := c.mc.SetExpire(c.ctx, &Expiration{Key: key, Exp: seconds})
+	_, err := c.mc.SetExpire(c.ctx, &pb.Expiration{Key: key, Exp: seconds})
 	err = normalizeError(err)
 	return err
 }
@@ -250,35 +251,35 @@ func (c *Client) SetLockTimeout(seconds int64) {
 
 // Lock a key from being modified.
 func (c *Client) Lock(key string) error {
-	_, err := c.mc.Lock(c.ctx, &Key{Key: key})
+	_, err := c.mc.Lock(c.ctx, &pb.Key{Key: key})
 	err = normalizeError(err)
 	return err
 }
 
 // LockWithTimeout locks a key, waiting for the given number of seconds if already locked before returning an error.
 func (c *Client) LockWithTimeout(key string, seconds int64) error {
-	_, err := c.mc.LockWithTimeout(c.ctx, &Expiration{Key: key, Exp: seconds})
+	_, err := c.mc.LockWithTimeout(c.ctx, &pb.Expiration{Key: key, Exp: seconds})
 	err = normalizeError(err)
 	return err
 }
 
 // Unlock a key for modification.
 func (c *Client) Unlock(key string) error {
-	_, err := c.mc.Unlock(c.ctx, &Key{Key: key})
+	_, err := c.mc.Unlock(c.ctx, &pb.Key{Key: key})
 	err = normalizeError(err)
 	return err
 }
 
 // UnlockThenSet unlocks a key, then immediately sets its value.
 func (c *Client) UnlockThenSet(key string, v Value) error {
-	_, err := c.mc.UnlockThenSet(c.ctx, &ByteValue{Key: key, Value: v.b})
+	_, err := c.mc.UnlockThenSet(c.ctx, &pb.ByteValue{Key: key, Value: v.b})
 	err = normalizeError(err)
 	return err
 }
 
 // Delete removes a key from the cache.
 func (c *Client) Delete(key string) error {
-	_, err := c.mc.Delete(c.ctx, &Key{Key: key})
+	_, err := c.mc.Delete(c.ctx, &pb.Key{Key: key})
 	err = normalizeError(err)
 	return err
 }
@@ -292,7 +293,7 @@ func (c *Client) Clear() error {
 
 // Get a value from the cache.
 func (c *Client) Get(key string) Value {
-	bv, err := c.mc.Get(c.ctx, &Key{Key: key})
+	bv, err := c.mc.Get(c.ctx, &pb.Key{Key: key})
 	if err != nil {
 		err = normalizeError(err)
 		return NewValue(err)
@@ -302,7 +303,7 @@ func (c *Client) Get(key string) Value {
 
 // GetMany gets multiple values from the cache.
 func (c *Client) GetMany(keys []string) (map[string]Value, error) {
-	h, err := c.mc.GetMany(c.ctx, &KeysList{Keys: keys})
+	h, err := c.mc.GetMany(c.ctx, &pb.KeysList{Keys: keys})
 	if err != nil {
 		err = normalizeError(err)
 		return nil, err
@@ -317,7 +318,7 @@ func (c *Client) GetMany(keys []string) (map[string]Value, error) {
 
 // GetWithPrefix gets the keys with the given prefix.
 func (c *Client) GetWithPrefix(prefix string) (map[string]Value, error) {
-	h, err := c.mc.GetWithPrefix(c.ctx, &Key{Key: prefix})
+	h, err := c.mc.GetWithPrefix(c.ctx, &pb.Key{Key: prefix})
 	if err != nil {
 		err = normalizeError(err)
 		return nil, err
@@ -337,7 +338,7 @@ func (c *Client) Set(key string, v interface{}) error {
 		return err
 	}
 
-	bv := &ByteValue{Key: key, Value: b}
+	bv := &pb.ByteValue{Key: key, Value: b}
 	if _, err := c.mc.Set(c.ctx, bv); err != nil {
 		err = normalizeError(err)
 		return err
@@ -352,7 +353,7 @@ func (c *Client) SetNX(key string, v interface{}) (bool, error) {
 		return false, err
 	}
 
-	bool, err := c.mc.SetNX(c.ctx, &ByteValue{Key: key, Value: b})
+	bool, err := c.mc.SetNX(c.ctx, &pb.ByteValue{Key: key, Value: b})
 	if err != nil {
 		err = normalizeError(err)
 		return false, err
@@ -362,7 +363,7 @@ func (c *Client) SetNX(key string, v interface{}) (bool, error) {
 
 // SetMany values, returning a map[key]errorText for any errors.
 func (c *Client) SetMany(vals map[string]Value) (map[string]string, error) {
-	h := &Hash{Value: MapValueToMapBytes(vals)}
+	h := &pb.Hash{Value: MapValueToMapBytes(vals)}
 	m, err := c.mc.SetMany(c.ctx, h)
 	if err != nil {
 		err = normalizeError(err)
@@ -373,7 +374,7 @@ func (c *Client) SetMany(vals map[string]Value) (map[string]string, error) {
 
 // Length returns the byte length of the value for the given key.
 func (c *Client) Length(key string) (int64, error) {
-	iv, err := c.mc.Length(c.ctx, &Key{Key: key})
+	iv, err := c.mc.Length(c.ctx, &pb.Key{Key: key})
 	if err != nil {
 		err = normalizeError(err)
 		return 0, err
@@ -383,7 +384,7 @@ func (c *Client) Length(key string) (int64, error) {
 
 // IncrementInt increments an integer stored at the given key by the given number and returns new value.
 func (c *Client) IncrementInt(key string, by int64) (int64, error) {
-	iv, err := c.mc.IncrementInt(c.ctx, &IntValue{Key: key, Value: by})
+	iv, err := c.mc.IncrementInt(c.ctx, &pb.IntValue{Key: key, Value: by})
 	if err != nil {
 		err = normalizeError(err)
 		return 0, err
@@ -393,7 +394,7 @@ func (c *Client) IncrementInt(key string, by int64) (int64, error) {
 
 // DecrementInt decrements an integer stored at the given key by the given number and returns new value.
 func (c *Client) DecrementInt(key string, by int64) (int64, error) {
-	iv, err := c.mc.DecrementInt(c.ctx, &IntValue{Key: key, Value: by})
+	iv, err := c.mc.DecrementInt(c.ctx, &pb.IntValue{Key: key, Value: by})
 	if err != nil {
 		err = normalizeError(err)
 		return 0, err
@@ -403,7 +404,7 @@ func (c *Client) DecrementInt(key string, by int64) (int64, error) {
 
 // IncrementFloat increments a float stored at the given key by the given number and returns new value.
 func (c *Client) IncrementFloat(key string, by float64) (float64, error) {
-	fv, err := c.mc.IncrementFloat(c.ctx, &FloatValue{Key: key, Value: by})
+	fv, err := c.mc.IncrementFloat(c.ctx, &pb.FloatValue{Key: key, Value: by})
 	if err != nil {
 		err = normalizeError(err)
 		return 0, err
@@ -413,7 +414,7 @@ func (c *Client) IncrementFloat(key string, by float64) (float64, error) {
 
 // DecrementFloat decrements a float stored at the given key by the given number and returns new value.
 func (c *Client) DecrementFloat(key string, by float64) (float64, error) {
-	fv, err := c.mc.DecrementFloat(c.ctx, &FloatValue{Key: key, Value: by})
+	fv, err := c.mc.DecrementFloat(c.ctx, &pb.FloatValue{Key: key, Value: by})
 	if err != nil {
 		err = normalizeError(err)
 		return 0, err
@@ -423,7 +424,7 @@ func (c *Client) DecrementFloat(key string, by float64) (float64, error) {
 
 // GetListItem gets a single item from a list by index, supports negative indexing.
 func (c *Client) GetListItem(key string, index int64) Value {
-	bv, err := c.mc.GetListItem(c.ctx, &ListItem{Key: key, Index: index})
+	bv, err := c.mc.GetListItem(c.ctx, &pb.ListItem{Key: key, Index: index})
 	if err != nil {
 		err = normalizeError(err)
 		return NewValue(err)
@@ -438,14 +439,14 @@ func (c *Client) SetListItem(key string, index int64, v interface{}) error {
 		return err
 	}
 
-	_, err = c.mc.SetListItem(c.ctx, &ListItem{Key: key, Index: index, Value: b})
+	_, err = c.mc.SetListItem(c.ctx, &pb.ListItem{Key: key, Index: index, Value: b})
 	err = normalizeError(err)
 	return err
 }
 
 // ListLength gets the number of items in a list.
 func (c *Client) ListLength(key string) (int64, error) {
-	iv, err := c.mc.ListLength(c.ctx, &Key{Key: key})
+	iv, err := c.mc.ListLength(c.ctx, &pb.Key{Key: key})
 	if err != nil {
 		err = normalizeError(err)
 		return 0, err
@@ -455,7 +456,7 @@ func (c *Client) ListLength(key string) (int64, error) {
 
 // ListLimit sets the maximum length of a list, removing items from the top once limit is reached.
 func (c *Client) ListLimit(key string, limit int64) error {
-	_, err := c.mc.ListLimit(c.ctx, &ListItem{Key: key, Index: limit})
+	_, err := c.mc.ListLimit(c.ctx, &pb.ListItem{Key: key, Index: limit})
 	err = normalizeError(err)
 	return err
 }
@@ -467,7 +468,7 @@ func (c *Client) ListInsert(key string, index int64, v interface{}) error {
 		return err
 	}
 
-	_, err = c.mc.ListInsert(c.ctx, &ListItem{Key: key, Index: index, Value: b})
+	_, err = c.mc.ListInsert(c.ctx, &pb.ListItem{Key: key, Index: index, Value: b})
 	err = normalizeError(err)
 	return err
 }
@@ -479,14 +480,14 @@ func (c *Client) ListAppend(key string, v interface{}) error {
 		return err
 	}
 
-	_, err = c.mc.ListAppend(c.ctx, &ListItem{Key: key, Value: b})
+	_, err = c.mc.ListAppend(c.ctx, &pb.ListItem{Key: key, Value: b})
 	err = normalizeError(err)
 	return err
 }
 
 // ListPopLeft returns and removes the first item in a list.
 func (c *Client) ListPopLeft(key string) Value {
-	bv, err := c.mc.ListPopLeft(c.ctx, &Key{Key: key})
+	bv, err := c.mc.ListPopLeft(c.ctx, &pb.Key{Key: key})
 	if err != nil {
 		err = normalizeError(err)
 		return NewValue(err)
@@ -496,7 +497,7 @@ func (c *Client) ListPopLeft(key string) Value {
 
 // ListPopLeftBlock returns and removes the first item in a list, or waits the given number of seconds for a value, timeout of zero waits forever.
 func (c *Client) ListPopLeftBlock(key string, timeout int64) Value {
-	bv, err := c.mc.ListPopLeft(c.ctx, &Key{Key: key, Block: true, BlockTimeout: timeout})
+	bv, err := c.mc.ListPopLeft(c.ctx, &pb.Key{Key: key, Block: true, BlockTimeout: timeout})
 	if err != nil {
 		err = normalizeError(err)
 		return NewValue(err)
@@ -506,7 +507,7 @@ func (c *Client) ListPopLeftBlock(key string, timeout int64) Value {
 
 // ListPopRight returns and removes the last item in a list.
 func (c *Client) ListPopRight(key string) Value {
-	bv, err := c.mc.ListPopRight(c.ctx, &Key{Key: key})
+	bv, err := c.mc.ListPopRight(c.ctx, &pb.Key{Key: key})
 	if err != nil {
 		err = normalizeError(err)
 		return NewValue(err)
@@ -516,7 +517,7 @@ func (c *Client) ListPopRight(key string) Value {
 
 // ListPopRightBlock returns and removes the last item in a list, or waits the given number of seconds for a value, timeout of zero waits forever.
 func (c *Client) ListPopRightBlock(key string, timeout int64) Value {
-	bv, err := c.mc.ListPopRight(c.ctx, &Key{Key: key, Block: true, BlockTimeout: timeout})
+	bv, err := c.mc.ListPopRight(c.ctx, &pb.Key{Key: key, Block: true, BlockTimeout: timeout})
 	if err != nil {
 		err = normalizeError(err)
 		return NewValue(err)
@@ -531,7 +532,7 @@ func (c *Client) ListHas(key string, v interface{}) (int64, error) {
 		return 0, err
 	}
 
-	iv, err := c.mc.ListHas(c.ctx, &ListItem{Key: key, Value: b})
+	iv, err := c.mc.ListHas(c.ctx, &pb.ListItem{Key: key, Value: b})
 	if err != nil {
 		err = normalizeError(err)
 		return 0, err
@@ -541,7 +542,7 @@ func (c *Client) ListHas(key string, v interface{}) (int64, error) {
 
 // ListDelete removes an item from a list by index.
 func (c *Client) ListDelete(key string, index int64) error {
-	_, err := c.mc.ListDelete(c.ctx, &ListItem{Key: key, Index: index})
+	_, err := c.mc.ListDelete(c.ctx, &pb.ListItem{Key: key, Index: index})
 	err = normalizeError(err)
 	return err
 }
@@ -553,7 +554,7 @@ func (c *Client) ListDeleteItem(key string, v interface{}) (int64, error) {
 		return 0, err
 	}
 
-	iv, err := c.mc.ListDeleteItem(c.ctx, &ListItem{Key: key, Value: b})
+	iv, err := c.mc.ListDeleteItem(c.ctx, &pb.ListItem{Key: key, Value: b})
 	if err != nil {
 		err = normalizeError(err)
 		return 0, err
@@ -563,7 +564,7 @@ func (c *Client) ListDeleteItem(key string, v interface{}) (int64, error) {
 
 // GetHashField gets a single value in a hash.
 func (c *Client) GetHashField(key, field string) Value {
-	bv, err := c.mc.GetHashField(c.ctx, &HashField{Key: key, Field: field})
+	bv, err := c.mc.GetHashField(c.ctx, &pb.HashField{Key: key, Field: field})
 	if err != nil {
 		err = normalizeError(err)
 		return NewValue(err)
@@ -573,7 +574,7 @@ func (c *Client) GetHashField(key, field string) Value {
 
 // GetHashFields gets multiple hash values.
 func (c *Client) GetHashFields(key string, fields []string) (map[string]Value, error) {
-	h, err := c.mc.GetHashFields(c.ctx, &HashFieldSet{Key: key, Field: fields})
+	h, err := c.mc.GetHashFields(c.ctx, &pb.HashFieldSet{Key: key, Field: fields})
 	if err != nil {
 		err = normalizeError(err)
 		return nil, err
@@ -587,7 +588,7 @@ func (c *Client) GetHashFields(key string, fields []string) (map[string]Value, e
 
 // HashHas determines if a hash has a given field.
 func (c *Client) HashHas(key, field string) (bool, error) {
-	b, err := c.mc.HashHas(c.ctx, &HashField{Key: key, Field: field})
+	b, err := c.mc.HashHas(c.ctx, &pb.HashField{Key: key, Field: field})
 	if err != nil {
 		err = normalizeError(err)
 		return false, err
@@ -597,7 +598,7 @@ func (c *Client) HashHas(key, field string) (bool, error) {
 
 // HashLength returns the number of fields in a hash.
 func (c *Client) HashLength(key string) (int64, error) {
-	iv, err := c.mc.HashLength(c.ctx, &Key{Key: key})
+	iv, err := c.mc.HashLength(c.ctx, &pb.Key{Key: key})
 	if err != nil {
 		err = normalizeError(err)
 		return 0, err
@@ -607,7 +608,7 @@ func (c *Client) HashLength(key string) (int64, error) {
 
 // HashFields gets a list of the fields in a hash.
 func (c *Client) HashFields(key string) ([]string, error) {
-	lst, err := c.mc.HashFields(c.ctx, &Key{Key: key})
+	lst, err := c.mc.HashFields(c.ctx, &pb.Key{Key: key})
 	if err != nil {
 		err = normalizeError(err)
 		return nil, err
@@ -617,7 +618,7 @@ func (c *Client) HashFields(key string) ([]string, error) {
 
 // HashValues gets a list of the values in a hash.
 func (c *Client) HashValues(key string) ([]Value, error) {
-	lst, err := c.mc.HashValues(c.ctx, &Key{Key: key})
+	lst, err := c.mc.HashValues(c.ctx, &pb.Key{Key: key})
 	if err != nil {
 		err = normalizeError(err)
 		return nil, err
@@ -633,31 +634,31 @@ func (c *Client) SetHashField(key, field string, v interface{}) error {
 		return err
 	}
 
-	_, err = c.mc.SetHashField(c.ctx, &HashField{Key: key, Field: field, Value: b})
+	_, err = c.mc.SetHashField(c.ctx, &pb.HashField{Key: key, Field: field, Value: b})
 	return err
 }
 
 // SetHashFields sets multiple values in a hash.
 func (c *Client) SetHashFields(key string, vals map[string]Value) error {
 	m := MapValueToMapBytes(vals)
-	_, err := c.mc.SetHashFields(c.ctx, &Hash{Key: key, Value: m})
+	_, err := c.mc.SetHashFields(c.ctx, &pb.Hash{Key: key, Value: m})
 	err = normalizeError(err)
 	return err
 }
 
 // DelHashField deletes a field from a hash.
 func (c *Client) DelHashField(key, field string) error {
-	_, err := c.mc.DelHashField(c.ctx, &HashField{Key: key, Field: field})
+	_, err := c.mc.DelHashField(c.ctx, &pb.HashField{Key: key, Field: field})
 	err = normalizeError(err)
 	return err
 }
 
 // NewEventChannel returns a new Event channel.
-func (c *Client) NewEventChannel() (ch chan *Event, id int64) {
+func (c *Client) NewEventChannel() (ch chan *pb.Event, id int64) {
 	id = c.newID
 	c.newID++
 
-	ch = make(chan *Event, 100)
+	ch = make(chan *pb.Event, 100)
 	c.lock.Lock()
 	c.watchers[id] = ch
 	c.lock.Unlock()
@@ -676,7 +677,7 @@ func (c *Client) CloseEventChannel(id int64) {
 
 // Watch for a key change.
 func (c *Client) Watch(key string, prefix bool) {
-	r := &WatchRequest{
+	r := &pb.WatchRequest{
 		Key:    key,
 		Prefix: prefix,
 	}
@@ -687,7 +688,7 @@ func (c *Client) Watch(key string, prefix bool) {
 
 // Unwatch stops watching for a key change.
 func (c *Client) Unwatch(key string, prefix bool) {
-	r := &WatchRequest{
+	r := &pb.WatchRequest{
 		Key:    key,
 		Prefix: prefix,
 		Cancel: true,
@@ -699,19 +700,19 @@ func (c *Client) Unwatch(key string, prefix bool) {
 
 // AuthEnable enables authentication.
 func (c *Client) AuthEnable() error {
-	_, err := c.mc.AuthEnable(c.ctx, &AuthEnableRequest{})
+	_, err := c.mc.AuthEnable(c.ctx, &pb.AuthEnableRequest{})
 	return err
 }
 
 // AuthDisable disables authentication.
 func (c *Client) AuthDisable() error {
-	_, err := c.mc.AuthDisable(c.ctx, &AuthDisableRequest{})
+	_, err := c.mc.AuthDisable(c.ctx, &pb.AuthDisableRequest{})
 	return err
 }
 
 // Authenticate processes an authenticate request.
 func (c *Client) Authenticate(username, password string) (string, error) {
-	resp, err := c.mc.Authenticate(c.ctx, &AuthenticateRequest{Name: username, Password: password})
+	resp, err := c.mc.Authenticate(c.ctx, &pb.AuthenticateRequest{Name: username, Password: password})
 	if err != nil {
 		return "", err
 	}
@@ -737,13 +738,13 @@ func (c *Client) LogOut() {
 
 // UserAdd adds a new user.
 func (c *Client) UserAdd(username, password string) error {
-	_, err := c.mc.UserAdd(c.ctx, &AuthUserAddRequest{Name: username, Password: password})
+	_, err := c.mc.UserAdd(c.ctx, &pb.AuthUserAddRequest{Name: username, Password: password})
 	return err
 }
 
 // UserGet gets detailed user information.
 func (c *Client) UserGet(username string) ([]string, error) {
-	resp, err := c.mc.UserGet(c.ctx, &AuthUserGetRequest{Name: username})
+	resp, err := c.mc.UserGet(c.ctx, &pb.AuthUserGetRequest{Name: username})
 	if err != nil {
 		return nil, err
 	}
@@ -752,7 +753,7 @@ func (c *Client) UserGet(username string) ([]string, error) {
 
 // UserList gets a list of all users.
 func (c *Client) UserList() ([]string, error) {
-	resp, err := c.mc.UserList(c.ctx, &AuthUserListRequest{})
+	resp, err := c.mc.UserList(c.ctx, &pb.AuthUserListRequest{})
 	if err != nil {
 		return nil, err
 	}
@@ -761,37 +762,37 @@ func (c *Client) UserList() ([]string, error) {
 
 // UserDelete deletes a specified user.
 func (c *Client) UserDelete(username string) error {
-	_, err := c.mc.UserDelete(c.ctx, &AuthUserDeleteRequest{Name: username})
+	_, err := c.mc.UserDelete(c.ctx, &pb.AuthUserDeleteRequest{Name: username})
 	return err
 }
 
 // UserChangePassword changes the password of the specified user.
 func (c *Client) UserChangePassword(username, password string) error {
-	_, err := c.mc.UserChangePassword(c.ctx, &AuthUserChangePasswordRequest{Name: username, Password: password})
+	_, err := c.mc.UserChangePassword(c.ctx, &pb.AuthUserChangePasswordRequest{Name: username, Password: password})
 	return err
 }
 
 // UserGrantRole grants a role to a specified user.
 func (c *Client) UserGrantRole(username, role string) error {
-	_, err := c.mc.UserGrantRole(c.ctx, &AuthUserGrantRoleRequest{User: username, Role: role})
+	_, err := c.mc.UserGrantRole(c.ctx, &pb.AuthUserGrantRoleRequest{User: username, Role: role})
 	return err
 }
 
 // UserRevokeRole revokes a role from a specified user.
 func (c *Client) UserRevokeRole(username, role string) error {
-	_, err := c.mc.UserRevokeRole(c.ctx, &AuthUserRevokeRoleRequest{Name: username, Role: role})
+	_, err := c.mc.UserRevokeRole(c.ctx, &pb.AuthUserRevokeRoleRequest{Name: username, Role: role})
 	return err
 }
 
 // RoleAdd adds a new role.
 func (c *Client) RoleAdd(role string) error {
-	_, err := c.mc.RoleAdd(c.ctx, &AuthRoleAddRequest{Name: role})
+	_, err := c.mc.RoleAdd(c.ctx, &pb.AuthRoleAddRequest{Name: role})
 	return err
 }
 
 // RoleGet gets detailed role information.
-func (c *Client) RoleGet(role string) ([]*Permission, error) {
-	resp, err := c.mc.RoleGet(c.ctx, &AuthRoleGetRequest{Role: role})
+func (c *Client) RoleGet(role string) ([]*pb.Permission, error) {
+	resp, err := c.mc.RoleGet(c.ctx, &pb.AuthRoleGetRequest{Role: role})
 	if err != nil {
 		return nil, err
 	}
@@ -800,7 +801,7 @@ func (c *Client) RoleGet(role string) ([]*Permission, error) {
 
 // RoleList gets a list of all roles.
 func (c *Client) RoleList() ([]string, error) {
-	resp, err := c.mc.RoleList(c.ctx, &AuthRoleListRequest{})
+	resp, err := c.mc.RoleList(c.ctx, &pb.AuthRoleListRequest{})
 	if err != nil {
 		return nil, err
 	}
@@ -809,19 +810,19 @@ func (c *Client) RoleList() ([]string, error) {
 
 // RoleDelete deletes a specified role.
 func (c *Client) RoleDelete(role string) error {
-	_, err := c.mc.RoleDelete(c.ctx, &AuthRoleDeleteRequest{Role: role})
+	_, err := c.mc.RoleDelete(c.ctx, &pb.AuthRoleDeleteRequest{Role: role})
 	return err
 }
 
 // RoleGrantPermission grants a permission of a specified key or range to a specified role.
-func (c *Client) RoleGrantPermission(role string, perm *Permission) error {
-	_, err := c.mc.RoleGrantPermission(c.ctx, &AuthRoleGrantPermissionRequest{Name: role, Perm: perm})
+func (c *Client) RoleGrantPermission(role string, perm *pb.Permission) error {
+	_, err := c.mc.RoleGrantPermission(c.ctx, &pb.AuthRoleGrantPermissionRequest{Name: role, Perm: perm})
 	return err
 }
 
 // RoleRevokePermission revokes a key or range permission of a specified key.
-func (c *Client) RoleRevokePermission(role string, perm *Permission) error {
-	_, err := c.mc.RoleRevokePermission(c.ctx, &AuthRoleRevokePermissionRequest{Key: string(perm.Key), RangeEnd: string(perm.RangeEnd), Role: role})
+func (c *Client) RoleRevokePermission(role string, perm *pb.Permission) error {
+	_, err := c.mc.RoleRevokePermission(c.ctx, &pb.AuthRoleRevokePermissionRequest{Key: string(perm.Key), RangeEnd: string(perm.RangeEnd), Role: role})
 	return err
 }
 

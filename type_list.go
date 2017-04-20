@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"github.com/coreos/etcd/etcdserver"
+	"github.com/deejross/mydis/pb"
 	"github.com/gogo/protobuf/proto"
 	"golang.org/x/net/context"
 )
@@ -33,12 +34,12 @@ var (
 )
 
 // GetList from the cache.
-func (s *Server) GetList(ctx context.Context, key *Key) (*List, error) {
+func (s *Server) GetList(ctx context.Context, key *pb.Key) (*pb.List, error) {
 	res, err := s.Get(ctx, key)
 	if err != nil {
 		return nil, err
 	}
-	lst := &List{}
+	lst := &pb.List{}
 	if err := proto.Unmarshal(res.Value, lst); err != nil && strings.HasPrefix(err.Error(), "proto: can't skip unknown wire type") {
 		return nil, ErrTypeMismatch
 	} else if err != nil {
@@ -48,8 +49,8 @@ func (s *Server) GetList(ctx context.Context, key *Key) (*List, error) {
 }
 
 // GetListItem returns a single item from a list key.
-func (s *Server) GetListItem(ctx context.Context, li *ListItem) (*ByteValue, error) {
-	lst, err := s.GetList(ctx, &Key{Key: li.Key})
+func (s *Server) GetListItem(ctx context.Context, li *pb.ListItem) (*pb.ByteValue, error) {
+	lst, err := s.GetList(ctx, &pb.Key{Key: li.Key})
 	if err != nil {
 		return nil, err
 	}
@@ -65,13 +66,13 @@ func (s *Server) GetListItem(ctx context.Context, li *ListItem) (*ByteValue, err
 	}
 
 	if li.Index >= 0 {
-		return &ByteValue{Value: lst.Value[li.Index]}, nil
+		return &pb.ByteValue{Value: lst.Value[li.Index]}, nil
 	}
-	return &ByteValue{Value: lst.Value[length+li.Index]}, nil
+	return &pb.ByteValue{Value: lst.Value[length+li.Index]}, nil
 }
 
 // SetList sets a list to the cache.
-func (s *Server) SetList(ctx context.Context, lst *List) (*Null, error) {
+func (s *Server) SetList(ctx context.Context, lst *pb.List) (*pb.Null, error) {
 	key := lst.Key
 	lst.Key = ""
 
@@ -79,13 +80,13 @@ func (s *Server) SetList(ctx context.Context, lst *List) (*Null, error) {
 	if err != nil {
 		return null, err
 	}
-	_, err = s.Set(ctx, &ByteValue{Key: key, Value: b})
+	_, err = s.Set(ctx, &pb.ByteValue{Key: key, Value: b})
 	return null, err
 }
 
 // SetListItem sets a single item in a list, throws ErrListIndexOutOfRange if index is out of range.
-func (s *Server) SetListItem(ctx context.Context, li *ListItem) (*Null, error) {
-	key := &Key{Key: li.Key}
+func (s *Server) SetListItem(ctx context.Context, li *pb.ListItem) (*pb.Null, error) {
+	key := &pb.Key{Key: li.Key}
 	if _, err := s.Lock(ctx, key); err != nil {
 		return null, err
 	}
@@ -120,17 +121,17 @@ func (s *Server) SetListItem(ctx context.Context, li *ListItem) (*Null, error) {
 }
 
 // ListLength returns the number of items in the list.
-func (s *Server) ListLength(ctx context.Context, key *Key) (*IntValue, error) {
+func (s *Server) ListLength(ctx context.Context, key *pb.Key) (*pb.IntValue, error) {
 	lst, err := s.GetList(ctx, key)
 	if err != nil {
-		return &IntValue{}, err
+		return &pb.IntValue{}, err
 	}
-	return &IntValue{Value: int64(len(lst.Value))}, nil
+	return &pb.IntValue{Value: int64(len(lst.Value))}, nil
 }
 
 // ListLimit sets the maximum length of a list, removing items from the top once limit is reached.
-func (s *Server) ListLimit(ctx context.Context, li *ListItem) (*Null, error) {
-	key := &Key{Key: li.Key}
+func (s *Server) ListLimit(ctx context.Context, li *pb.ListItem) (*pb.Null, error) {
+	key := &pb.Key{Key: li.Key}
 	if _, err := s.Lock(ctx, key); err != nil {
 		return null, err
 	}
@@ -149,15 +150,15 @@ func (s *Server) ListLimit(ctx context.Context, li *ListItem) (*Null, error) {
 }
 
 // ListInsert inserts a new item into the list at the given index, creates new list if doesn't exist.
-func (s *Server) ListInsert(ctx context.Context, li *ListItem) (*Null, error) {
-	key := &Key{Key: li.Key}
+func (s *Server) ListInsert(ctx context.Context, li *pb.ListItem) (*pb.Null, error) {
+	key := &pb.Key{Key: li.Key}
 	if _, err := s.Lock(ctx, key); err != nil {
 		return null, err
 	}
 
 	lst, err := s.GetList(ctx, key)
 	if err == etcdserver.ErrKeyNotFound {
-		lst = &List{Value: [][]byte{}}
+		lst = &pb.List{Value: [][]byte{}}
 	} else if err != nil {
 		s.Unlock(ctx, key)
 		return null, err
@@ -180,15 +181,15 @@ func (s *Server) ListInsert(ctx context.Context, li *ListItem) (*Null, error) {
 }
 
 // ListAppend appends an item to the end of a list, creates new list of doesn't exist.
-func (s *Server) ListAppend(ctx context.Context, li *ListItem) (*Null, error) {
-	key := &Key{Key: li.Key}
+func (s *Server) ListAppend(ctx context.Context, li *pb.ListItem) (*pb.Null, error) {
+	key := &pb.Key{Key: li.Key}
 	if _, err := s.Lock(ctx, key); err != nil {
 		return null, err
 	}
 
 	lst, err := s.GetList(ctx, key)
 	if err == etcdserver.ErrKeyNotFound {
-		lst = &List{Value: [][]byte{}}
+		lst = &pb.List{Value: [][]byte{}}
 	} else if err != nil {
 		s.Unlock(ctx, key)
 		return null, err
@@ -201,22 +202,22 @@ func (s *Server) ListAppend(ctx context.Context, li *ListItem) (*Null, error) {
 }
 
 // ListPopLeft removes and returns the first item in a list.
-func (s *Server) ListPopLeft(ctx context.Context, key *Key) (*ByteValue, error) {
+func (s *Server) ListPopLeft(ctx context.Context, key *pb.Key) (*pb.ByteValue, error) {
 	if _, err := s.Lock(ctx, key); err != nil {
-		return &ByteValue{}, err
+		return &pb.ByteValue{}, err
 	}
 
 	block := key.Block
 	key.Block = false
 	lst, err := s.GetList(ctx, key)
 	if err == etcdserver.ErrKeyNotFound && block {
-		lst = &List{Value: [][]byte{}}
+		lst = &pb.List{Value: [][]byte{}}
 	} else if err == etcdserver.ErrKeyNotFound {
 		s.Unlock(ctx, key)
-		return &ByteValue{}, ErrListEmpty
+		return &pb.ByteValue{}, ErrListEmpty
 	} else if err != nil {
 		s.Unlock(ctx, key)
-		return &ByteValue{}, err
+		return &pb.ByteValue{}, err
 	}
 
 	lst.Key = key.Key
@@ -239,35 +240,35 @@ func (s *Server) ListPopLeft(ctx context.Context, key *Key) (*ByteValue, error) 
 		}
 	} else if len(lst.Value) == 0 {
 		s.Unlock(ctx, key)
-		return &ByteValue{}, ErrListEmpty
+		return &pb.ByteValue{}, ErrListEmpty
 	}
 
 	b := lst.Value[0]
 	lst.Value = lst.Value[1:]
 	_, err = s.UnlockThenSetList(ctx, lst)
 	if err != nil {
-		return &ByteValue{}, err
+		return &pb.ByteValue{}, err
 	}
-	return &ByteValue{Value: b}, nil
+	return &pb.ByteValue{Value: b}, nil
 }
 
 // ListPopRight removes and returns the last item in a list.
-func (s *Server) ListPopRight(ctx context.Context, key *Key) (*ByteValue, error) {
+func (s *Server) ListPopRight(ctx context.Context, key *pb.Key) (*pb.ByteValue, error) {
 	if _, err := s.Lock(ctx, key); err != nil {
-		return &ByteValue{}, err
+		return &pb.ByteValue{}, err
 	}
 
 	block := key.Block
 	key.Block = false
 	lst, err := s.GetList(ctx, key)
 	if err == etcdserver.ErrKeyNotFound && block {
-		lst = &List{Value: [][]byte{}}
+		lst = &pb.List{Value: [][]byte{}}
 	} else if err == etcdserver.ErrKeyNotFound {
 		s.Unlock(ctx, key)
-		return &ByteValue{}, ErrListEmpty
+		return &pb.ByteValue{}, ErrListEmpty
 	} else if err != nil {
 		s.Unlock(ctx, key)
-		return &ByteValue{}, err
+		return &pb.ByteValue{}, err
 	}
 
 	lst.Key = key.Key
@@ -291,7 +292,7 @@ func (s *Server) ListPopRight(ctx context.Context, key *Key) (*ByteValue, error)
 		}
 	} else if len(lst.Value) == 0 {
 		s.Unlock(ctx, key)
-		return &ByteValue{}, ErrListEmpty
+		return &pb.ByteValue{}, ErrListEmpty
 	}
 
 	length := len(lst.Value)
@@ -299,31 +300,31 @@ func (s *Server) ListPopRight(ctx context.Context, key *Key) (*ByteValue, error)
 	lst.Value = lst.Value[:length-1]
 	_, err = s.UnlockThenSetList(ctx, lst)
 	if err != nil {
-		return &ByteValue{}, err
+		return &pb.ByteValue{}, err
 	}
-	return &ByteValue{Value: b}, nil
+	return &pb.ByteValue{Value: b}, nil
 }
 
 // ListHas determines if the given value exists in the list, returns index or -1 if not found.
-func (s *Server) ListHas(ctx context.Context, li *ListItem) (*IntValue, error) {
-	lst, err := s.GetList(ctx, &Key{Key: li.Key})
+func (s *Server) ListHas(ctx context.Context, li *pb.ListItem) (*pb.IntValue, error) {
+	lst, err := s.GetList(ctx, &pb.Key{Key: li.Key})
 	if err == etcdserver.ErrKeyNotFound {
-		return &IntValue{Value: -1}, nil
+		return &pb.IntValue{Value: -1}, nil
 	} else if err != nil {
-		return &IntValue{}, err
+		return &pb.IntValue{}, err
 	}
 
 	for i, b := range lst.Value {
 		if bytes.Equal(b, li.Value) {
-			return &IntValue{Value: int64(i)}, nil
+			return &pb.IntValue{Value: int64(i)}, nil
 		}
 	}
-	return &IntValue{Value: -1}, nil
+	return &pb.IntValue{Value: -1}, nil
 }
 
 // ListDelete removes an item from a list by index.
-func (s *Server) ListDelete(ctx context.Context, li *ListItem) (*Null, error) {
-	key := &Key{Key: li.Key}
+func (s *Server) ListDelete(ctx context.Context, li *pb.ListItem) (*pb.Null, error) {
+	key := &pb.Key{Key: li.Key}
 	if _, err := s.Lock(ctx, key); err != nil {
 		return null, err
 	}
@@ -356,19 +357,19 @@ func (s *Server) ListDelete(ctx context.Context, li *ListItem) (*Null, error) {
 }
 
 // ListDeleteItem removes the first occurrence of value from a list, returns index of removed item or -1 for not found.
-func (s *Server) ListDeleteItem(ctx context.Context, li *ListItem) (*IntValue, error) {
-	key := &Key{Key: li.Key}
+func (s *Server) ListDeleteItem(ctx context.Context, li *pb.ListItem) (*pb.IntValue, error) {
+	key := &pb.Key{Key: li.Key}
 	if _, err := s.Lock(ctx, key); err != nil {
-		return &IntValue{}, err
+		return &pb.IntValue{}, err
 	}
 
 	lst, err := s.GetList(ctx, key)
 	if err == etcdserver.ErrKeyNotFound {
 		s.Unlock(ctx, key)
-		return &IntValue{Value: -1}, nil
+		return &pb.IntValue{Value: -1}, nil
 	} else if err != nil {
 		s.Unlock(ctx, key)
-		return &IntValue{}, err
+		return &pb.IntValue{}, err
 	}
 
 	found := int64(-1)
@@ -380,7 +381,7 @@ func (s *Server) ListDeleteItem(ctx context.Context, li *ListItem) (*IntValue, e
 	}
 
 	if found == -1 {
-		return &IntValue{Value: -1}, nil
+		return &pb.IntValue{Value: -1}, nil
 	}
 
 	copy(lst.Value[found:], lst.Value[found+1:])
@@ -389,5 +390,5 @@ func (s *Server) ListDeleteItem(ctx context.Context, li *ListItem) (*IntValue, e
 	lst.Key = li.Key
 
 	_, err = s.UnlockThenSetList(ctx, lst)
-	return &IntValue{Value: found}, err
+	return &pb.IntValue{Value: found}, err
 }

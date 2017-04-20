@@ -14,22 +14,26 @@
 
 package mydis
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/deejross/mydis/pb"
+)
 
 func TestSetInt(t *testing.T) {
-	if _, err := server.SetInt(ctx, &IntValue{Key: "int1", Value: 42}); err != nil {
+	if _, err := server.SetInt(ctx, &pb.IntValue{Key: "int1", Value: 42}); err != nil {
 		t.Error(err)
 	}
 }
 
 func TestGetInt(t *testing.T) {
-	if iv, err := server.GetInt(ctx, &Key{Key: "int1"}); err != nil {
+	if iv, err := server.GetInt(ctx, &pb.Key{Key: "int1"}); err != nil {
 		t.Error(err)
 	} else if iv.Value != 42 {
 		t.Error("Unexpected value:", iv.Value)
 	}
 
-	if _, err := server.GetInt(ctx, &Key{Key: "key1"}); err == nil {
+	if _, err := server.GetInt(ctx, &pb.Key{Key: "key1"}); err == nil {
 		t.Error("Expected error but got nothing")
 	}
 }
@@ -37,28 +41,28 @@ func TestGetInt(t *testing.T) {
 func TestIncrementInt(t *testing.T) {
 	testReset()
 
-	if _, err := server.SetInt(ctx, &IntValue{Key: "int1", Value: 42}); err != nil {
+	if _, err := server.SetInt(ctx, &pb.IntValue{Key: "int1", Value: 42}); err != nil {
 		t.Error(err)
 	}
 
-	if iv, err := server.IncrementInt(ctx, &IntValue{Key: "int1", Value: 10}); err != nil {
+	if iv, err := server.IncrementInt(ctx, &pb.IntValue{Key: "int1", Value: 10}); err != nil {
 		t.Error(err)
 	} else if iv.Value != 52 {
 		t.Error("Unexpected value:", iv.Value)
 	}
-	if iv, err := server.GetInt(ctx, &Key{Key: "int1"}); err != nil {
+	if iv, err := server.GetInt(ctx, &pb.Key{Key: "int1"}); err != nil {
 		t.Error(err)
 	} else if iv.Value != 52 {
 		t.Error("New value not committed")
 	}
 
-	if iv, err := server.IncrementInt(ctx, &IntValue{Key: "newInt", Value: 42}); err != nil {
+	if iv, err := server.IncrementInt(ctx, &pb.IntValue{Key: "newInt", Value: 42}); err != nil {
 		t.Error(err)
 	} else if iv.Value != 42 {
 		t.Error("Unexpected value:", iv.Value)
 	}
 
-	if iv, err := server.GetInt(ctx, &Key{Key: "newInt"}); err != nil {
+	if iv, err := server.GetInt(ctx, &pb.Key{Key: "newInt"}); err != nil {
 		t.Error(err)
 	} else if iv.Value != 42 {
 		t.Error("New value not committed, got:", iv.Value)
@@ -68,28 +72,28 @@ func TestIncrementInt(t *testing.T) {
 func TestDecrementInt(t *testing.T) {
 	testReset()
 
-	if _, err := server.SetInt(ctx, &IntValue{Key: "int1", Value: 42}); err != nil {
+	if _, err := server.SetInt(ctx, &pb.IntValue{Key: "int1", Value: 42}); err != nil {
 		t.Error(err)
 	}
 
-	if iv, err := server.DecrementInt(ctx, &IntValue{Key: "int1", Value: 10}); err != nil {
+	if iv, err := server.DecrementInt(ctx, &pb.IntValue{Key: "int1", Value: 10}); err != nil {
 		t.Error(err)
 	} else if iv.Value != 32 {
 		t.Error("Unexpected value:", iv.Value)
 	}
-	if iv, err := server.GetInt(ctx, &Key{Key: "int1"}); err != nil {
+	if iv, err := server.GetInt(ctx, &pb.Key{Key: "int1"}); err != nil {
 		t.Error(err)
 	} else if iv.Value != 32 {
 		t.Error("New value not committed")
 	}
 
-	if iv, err := server.DecrementInt(ctx, &IntValue{Key: "newInt", Value: 42}); err != nil {
+	if iv, err := server.DecrementInt(ctx, &pb.IntValue{Key: "newInt", Value: 42}); err != nil {
 		t.Error(err)
 	} else if iv.Value != -42 {
 		t.Error("Unexpected value:", iv.Value)
 	}
 
-	if iv, err := server.GetInt(ctx, &Key{Key: "newInt"}); err != nil {
+	if iv, err := server.GetInt(ctx, &pb.Key{Key: "newInt"}); err != nil {
 		t.Error(err)
 	} else if iv.Value != -42 {
 		t.Error("New value not committed, got:", iv.Value)

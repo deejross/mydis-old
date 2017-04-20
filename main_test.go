@@ -26,6 +26,7 @@ import (
 	"sync"
 
 	"github.com/coreos/etcd/embed"
+	"github.com/deejross/mydis/pb"
 	"google.golang.org/grpc/metadata"
 )
 
@@ -204,7 +205,7 @@ func TestCluster(t *testing.T) {
 		os.Exit(1)
 	}
 
-	peer1.Set(ctx, &ByteValue{Key: "key1", Value: []byte("val1")})
+	peer1.Set(ctx, &pb.ByteValue{Key: "key1", Value: []byte("val1")})
 
 	if s, err := client1.Get("key1").String(); err != nil {
 		t.Error(err)
@@ -257,5 +258,5 @@ func testReset() {
 }
 
 func testAddKey1() {
-	server.Set(ctx, &ByteValue{Key: "key1", Value: []byte("val1")})
+	server.Set(ctx, &pb.ByteValue{Key: "key1", Value: []byte("val1")})
 }

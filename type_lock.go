@@ -20,7 +20,8 @@ import (
 
 	"strconv"
 
-	pb "github.com/coreos/etcd/etcdserver/etcdserverpb"
+	etcdpb "github.com/coreos/etcd/etcdserver/etcdserverpb"
+	"github.com/deejross/mydis/pb"
 	"github.com/gogo/protobuf/proto"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/metadata"
@@ -48,35 +49,35 @@ func (s *Server) getMaxWait(ctx context.Context) int64 {
 // Lock a key from being modified. If a lock has already been placed on the key,
 // code will block until lock is released, or until 5 seconds has passed. If
 // 5 second timeout is reached, ErrKeyLocked is returned.
-func (s *Server) Lock(ctx context.Context, key *Key) (*Null, error) {
+func (s *Server) Lock(ctx context.Context, key *pb.Key) (*pb.Null, error) {
 	maxWait := s.getMaxWait(ctx)
-	return s.LockWithTimeout(ctx, &Expiration{Key: key.Key, Exp: maxWait})
+	return s.LockWithTimeout(ctx, &pb.Expiration{Key: key.Key, Exp: maxWait})
 }
 
 // LockWithTimeout works the same as Lock, but allows the lock timeout to be specified
 // instead of using the default of 5 seconds in the case that a lock has already been
 // placed on the key. Setting expiration to zero will timeout immediately. If expiration
 // is less than zero, timeout will be set to forever.
-func (s *Server) LockWithTimeout(ctx context.Context, ex *Expiration) (*Null, error) {
+func (s *Server) LockWithTimeout(ctx context.Context, ex *pb.Expiration) (*pb.Null, error) {
 	maxWait := time.Now().Add(time.Duration(ex.Exp) * time.Second)
 	keyLock := getLockName(ex.Key)
 
 	for {
-		if res, err := s.cache.Server.Txn(ctx, &pb.TxnRequest{
-			Compare: []*pb.Compare{
+		if res, err := s.cache.Server.Txn(ctx, &etcdpb.TxnRequest{
+			Compare: []*etcdpb.Compare{
 				{
 					Key:    keyLock,
-					Target: pb.Compare_VALUE,
-					Result: pb.Compare_EQUAL,
-					TargetUnion: &pb.Compare_Value{
+					Target: etcdpb.Compare_VALUE,
+					Result: etcdpb.Compare_EQUAL,
+					TargetUnion: &etcdpb.Compare_Value{
 						Value: ZeroByte,
 					},
 				},
 			},
-			Failure: []*pb.RequestOp{
+			Failure: []*etcdpb.RequestOp{
 				{
-					Request: &pb.RequestOp_RequestPut{
-						RequestPut: &pb.PutRequest{
+					Request: &etcdpb.RequestOp_RequestPut{
+						RequestPut: &etcdpb.PutRequest{
 							Key:   keyLock,
 							Value: ZeroByte,
 						},
@@ -102,39 +103,39 @@ func (s *Server) LockWithTimeout(ctx context.Context, ex *Expiration) (*Null, er
 }
 
 // Unlock a key for modifications.
-func (s *Server) Unlock(ctx context.Context, key *Key) (*Null, error) {
-	return s.Delete(ctx, &Key{Key: BytesToString(getLockName(key.Key))})
+func (s *Server) Unlock(ctx context.Context, key *pb.Key) (*pb.Null, error) {
+	return s.Delete(ctx, &pb.Key{Key: BytesToString(getLockName(key.Key))})
 }
 
 // UnlockThenSet unlocks a key, then immediately sets a new value for it.
-func (s *Server) UnlockThenSet(ctx context.Context, val *ByteValue) (*Null, error) {
+func (s *Server) UnlockThenSet(ctx context.Context, val *pb.ByteValue) (*pb.Null, error) {
 	bkey := StringToBytes(val.Key)
 	if len(bkey) == 0 || bytes.Equal(bkey, ZeroByte) {
 		return null, ErrInvalidKey
 	}
 	keyLock := getLockName(val.Key)
-	_, err := s.cache.Server.Txn(ctx, &pb.TxnRequest{
-		Compare: []*pb.Compare{
+	_, err := s.cache.Server.Txn(ctx, &etcdpb.TxnRequest{
+		Compare: []*etcdpb.Compare{
 			{
 				Key:    ZeroByte,
-				Target: pb.Compare_VALUE,
-				Result: pb.Compare_EQUAL,
-				TargetUnion: &pb.Compare_Value{
+				Target: etcdpb.Compare_VALUE,
+				Result: etcdpb.Compare_EQUAL,
+				TargetUnion: &etcdpb.Compare_Value{
 					Value: ZeroByte,
 				},
 			},
 		},
-		Failure: []*pb.RequestOp{
+		Failure: []*etcdpb.RequestOp{
 			{
-				Request: &pb.RequestOp_RequestDeleteRange{
-					RequestDeleteRange: &pb.DeleteRangeRequest{
+				Request: &etcdpb.RequestOp_RequestDeleteRange{
+					RequestDeleteRange: &etcdpb.DeleteRangeRequest{
 						Key: keyLock,
 					},
 				},
 			},
 			{
-				Request: &pb.RequestOp_RequestPut{
-					RequestPut: &pb.PutRequest{
+				Request: &etcdpb.RequestOp_RequestPut{
+					RequestPut: &etcdpb.PutRequest{
 						Key:   StringToBytes(val.Key),
 						Value: val.Value,
 					},
@@ -146,23 +147,23 @@ func (s *Server) UnlockThenSet(ctx context.Context, val *ByteValue) (*Null, erro
 }
 
 // UnlockThenSetList unlocks a key, then immediately sets a list value for it.
-func (s *Server) UnlockThenSetList(ctx context.Context, val *List) (*Null, error) {
+func (s *Server) UnlockThenSetList(ctx context.Context, val *pb.List) (*pb.Null, error) {
 	key := val.Key
 	val.Key = ""
 	b, err := proto.Marshal(val)
 	if err != nil {
 		return null, err
 	}
-	return s.UnlockThenSet(ctx, &ByteValue{Key: key, Value: b})
+	return s.UnlockThenSet(ctx, &pb.ByteValue{Key: key, Value: b})
 }
 
 // UnlockThenSetHash unlocks a key, then immediately sets a hash value for it.
-func (s *Server) UnlockThenSetHash(ctx context.Context, val *Hash) (*Null, error) {
+func (s *Server) UnlockThenSetHash(ctx context.Context, val *pb.Hash) (*pb.Null, error) {
 	key := val.Key
 	val.Key = ""
 	b, err := proto.Marshal(val)
 	if err != nil {
 		return null, err
 	}
-	return s.UnlockThenSet(ctx, &ByteValue{Key: key, Value: b})
+	return s.UnlockThenSet(ctx, &pb.ByteValue{Key: key, Value: b})
 }

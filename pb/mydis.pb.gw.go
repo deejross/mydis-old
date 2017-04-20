@@ -3,11 +3,11 @@
 // DO NOT EDIT!
 
 /*
-Package mydis is a reverse proxy.
+Package pb is a reverse proxy.
 
 It translates gRPC into RESTful JSON APIs.
 */
-package mydis
+package pb
 
 import (
 	"io"

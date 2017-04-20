@@ -20,6 +20,7 @@ import (
 
 	"github.com/coreos/etcd/etcdserver"
 	"github.com/coreos/etcd/mvcc"
+	"github.com/deejross/mydis/pb"
 )
 
 // WatchController object.
@@ -45,11 +46,11 @@ func NewWatchController(server *etcdserver.EtcdServer) *WatchController {
 func (w *WatchController) NewWatcher() *Watcher {
 	watcher := &Watcher{
 		closeCh:    make(chan struct{}),
-		reqCh:      make(chan *WatchRequest),
+		reqCh:      make(chan *pb.WatchRequest),
 		resCh:      make(chan struct{}),
-		eventCh:    make(chan *Event),
+		eventCh:    make(chan *pb.Event),
 		controller: w,
-		watching:   map[string]*WatchRequest{},
+		watching:   map[string]*pb.WatchRequest{},
 	}
 
 	w.lock.Lock()
@@ -88,15 +89,15 @@ func (w *WatchController) Close() {
 type Watcher struct {
 	controller *WatchController
 	closeCh    chan struct{}
-	reqCh      chan *WatchRequest
+	reqCh      chan *pb.WatchRequest
 	resCh      chan struct{}
-	eventCh    chan *Event
+	eventCh    chan *pb.Event
 	server     *etcdserver.EtcdServer
-	watching   map[string]*WatchRequest
+	watching   map[string]*pb.WatchRequest
 }
 
 // RequestID gets the string ID from the WatchRequest.
-func (w *Watcher) RequestID(r *WatchRequest) string {
+func (w *Watcher) RequestID(r *pb.WatchRequest) string {
 	id := r.Key
 	if r.Prefix {
 		id += suffixForKeysUsingPrefix
@@ -152,16 +153,16 @@ func (w *Watcher) backgroundProcess() {
 			w.resCh <- struct{}{}
 		case r := <-streamCh:
 			for _, e := range r.Events {
-				ev := &Event{
-					Type:     Event_EventType(e.Type),
-					Current:  &ByteValue{},
-					Previous: &ByteValue{},
+				ev := &pb.Event{
+					Type:     pb.Event_EventType(e.Type),
+					Current:  &pb.ByteValue{},
+					Previous: &pb.ByteValue{},
 				}
 				if e.Kv != nil {
-					ev.Current = &ByteValue{Key: BytesToString(e.Kv.Key), Value: e.Kv.Value}
+					ev.Current = &pb.ByteValue{Key: BytesToString(e.Kv.Key), Value: e.Kv.Value}
 				}
 				if e.PrevKv != nil {
-					ev.Previous = &ByteValue{Key: BytesToString(e.PrevKv.Key), Value: e.PrevKv.Value}
+					ev.Previous = &pb.ByteValue{Key: BytesToString(e.PrevKv.Key), Value: e.PrevKv.Value}
 				}
 
 				for _, r := range w.watching {
@@ -176,7 +177,7 @@ func (w *Watcher) backgroundProcess() {
 }
 
 // Watch a key for changes.
-func (s *Server) Watch(stream Mydis_WatchServer) error {
+func (s *Server) Watch(stream pb.Mydis_WatchServer) error {
 	watcher := s.wc.NewWatcher()
 	defer watcher.Close()
 

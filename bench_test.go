@@ -17,12 +17,14 @@ package mydis
 import (
 	"strconv"
 	"testing"
+
+	"github.com/deejross/mydis/pb"
 )
 
 func BenchmarkSet(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		si := strconv.Itoa(i)
-		server.Set(ctx, &ByteValue{
+		server.Set(ctx, &pb.ByteValue{
 			Key:   "key" + si,
 			Value: []byte("val" + si),
 		})
@@ -31,12 +33,12 @@ func BenchmarkSet(b *testing.B) {
 
 func BenchmarkGet(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		server.Get(ctx, &Key{Key: "key" + strconv.Itoa(i)})
+		server.Get(ctx, &pb.Key{Key: "key" + strconv.Itoa(i)})
 	}
 }
 
 func BenchmarkSetMany(b *testing.B) {
-	vals := &Hash{Value: map[string][]byte{
+	vals := &pb.Hash{Value: map[string][]byte{
 		"key1": []byte("val1"),
 		"key2": []byte("val2"),
 		"key3": []byte("val3"),
@@ -49,7 +51,7 @@ func BenchmarkSetMany(b *testing.B) {
 }
 
 func BenchmarkGetMany(b *testing.B) {
-	keys := &KeysList{Keys: []string{"key1", "key2", "key3", "key4", "key5"}}
+	keys := &pb.KeysList{Keys: []string{"key1", "key2", "key3", "key4", "key5"}}
 	for i := 0; i < b.N; i++ {
 		server.GetMany(ctx, keys)
 	}

@@ -14,29 +14,33 @@
 
 package mydis
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/deejross/mydis/pb"
+)
 
 func TestLock(t *testing.T) {
 	testReset()
 
-	if _, err := server.Lock(ctx, &Key{Key: "key1"}); err != nil {
+	if _, err := server.Lock(ctx, &pb.Key{Key: "key1"}); err != nil {
 		t.Error(err)
 	}
 
 	t.Log("INFO: This test will take about 2 seconds to complete")
-	if _, err := server.LockWithTimeout(ctx, &Expiration{Key: "key1", Exp: 1}); err != ErrKeyLocked {
+	if _, err := server.LockWithTimeout(ctx, &pb.Expiration{Key: "key1", Exp: 1}); err != ErrKeyLocked {
 		t.Error("Unexpected or no error:", err)
 	}
 
-	if _, err := server.Set(ctx, &ByteValue{Key: "key1", Value: []byte("val1")}); err != ErrKeyLocked {
+	if _, err := server.Set(ctx, &pb.ByteValue{Key: "key1", Value: []byte("val1")}); err != ErrKeyLocked {
 		t.Error("Unexpected or no error:", err)
 	}
 
-	if _, err := server.Unlock(ctx, &Key{Key: "key1"}); err != nil {
+	if _, err := server.Unlock(ctx, &pb.Key{Key: "key1"}); err != nil {
 		t.Error(err)
 	}
 
-	if _, err := server.Set(ctx, &ByteValue{Key: "key1", Value: []byte("val1")}); err != nil {
+	if _, err := server.Set(ctx, &pb.ByteValue{Key: "key1", Value: []byte("val1")}); err != nil {
 		t.Error(err)
 	}
 }

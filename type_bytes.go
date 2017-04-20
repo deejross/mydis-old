@@ -20,7 +20,8 @@ import (
 	"time"
 
 	"github.com/coreos/etcd/etcdserver"
-	pb "github.com/coreos/etcd/etcdserver/etcdserverpb"
+	etcdpb "github.com/coreos/etcd/etcdserver/etcdserverpb"
+	"github.com/deejross/mydis/pb"
 	"golang.org/x/net/context"
 )
 
@@ -32,11 +33,11 @@ var (
 )
 
 // Get a byte array from the cache.
-func (s *Server) Get(ctx context.Context, key *Key) (*ByteValue, error) {
+func (s *Server) Get(ctx context.Context, key *pb.Key) (*pb.ByteValue, error) {
 	res, err := s.cache.Server.Range(ctx, getRangeRequestFromKey(key))
 
 	if err != nil {
-		return &ByteValue{}, err
+		return &pb.ByteValue{}, err
 	} else if res.Kvs == nil && key.Block {
 		waited := time.Duration(0)
 		sleep := 10 * time.Millisecond
@@ -54,36 +55,36 @@ func (s *Server) Get(ctx context.Context, key *Key) (*ByteValue, error) {
 			}
 		}
 	} else if res.Count > 0 {
-		return &ByteValue{Value: res.Kvs[0].Value}, nil
+		return &pb.ByteValue{Value: res.Kvs[0].Value}, nil
 	}
 
-	return &ByteValue{}, etcdserver.ErrKeyNotFound
+	return &pb.ByteValue{}, etcdserver.ErrKeyNotFound
 }
 
 // GetMany gets a list of values from the cache.
-func (s *Server) GetMany(ctx context.Context, keys *KeysList) (*Hash, error) {
+func (s *Server) GetMany(ctx context.Context, keys *pb.KeysList) (*pb.Hash, error) {
 	if len(keys.Keys) == 0 {
-		return &Hash{}, nil
+		return &pb.Hash{}, nil
 	}
 
-	req := &pb.TxnRequest{
-		Compare: []*pb.Compare{
+	req := &etcdpb.TxnRequest{
+		Compare: []*etcdpb.Compare{
 			{
 				Key:    ZeroByte,
-				Target: pb.Compare_VALUE,
-				Result: pb.Compare_EQUAL,
-				TargetUnion: &pb.Compare_Value{
+				Target: etcdpb.Compare_VALUE,
+				Result: etcdpb.Compare_EQUAL,
+				TargetUnion: &etcdpb.Compare_Value{
 					Value: ZeroByte,
 				},
 			},
 		},
-		Failure: []*pb.RequestOp{},
+		Failure: []*etcdpb.RequestOp{},
 	}
 
 	for _, key := range keys.Keys {
-		op := &pb.RequestOp{
-			Request: &pb.RequestOp_RequestRange{
-				RequestRange: &pb.RangeRequest{
+		op := &etcdpb.RequestOp{
+			Request: &etcdpb.RequestOp_RequestRange{
+				RequestRange: &etcdpb.RangeRequest{
 					Key: StringToBytes(key),
 				},
 			},
@@ -96,7 +97,7 @@ func (s *Server) GetMany(ctx context.Context, keys *KeysList) (*Hash, error) {
 		return nil, err
 	}
 
-	h := &Hash{Value: map[string][]byte{}}
+	h := &pb.Hash{Value: map[string][]byte{}}
 	for i, op := range res.Responses {
 		key := keys.Keys[i]
 		kvs := op.GetResponseRange().Kvs
@@ -108,7 +109,7 @@ func (s *Server) GetMany(ctx context.Context, keys *KeysList) (*Hash, error) {
 }
 
 // GetWithPrefix gets all byte arrays with the given prefix.
-func (s *Server) GetWithPrefix(ctx context.Context, key *Key) (*Hash, error) {
+func (s *Server) GetWithPrefix(ctx context.Context, key *pb.Key) (*pb.Hash, error) {
 	req := getRangeRequestFromKey(key)
 	req.RangeEnd = getPrefix(key.Key)
 	res, err := s.cache.Server.Range(ctx, req)
@@ -116,7 +117,7 @@ func (s *Server) GetWithPrefix(ctx context.Context, key *Key) (*Hash, error) {
 		return nil, err
 	}
 
-	h := &Hash{Value: map[string][]byte{}}
+	h := &pb.Hash{Value: map[string][]byte{}}
 	for _, kv := range res.Kvs {
 		h.Value[BytesToString(kv.Key)] = kv.Value
 	}
@@ -124,7 +125,7 @@ func (s *Server) GetWithPrefix(ctx context.Context, key *Key) (*Hash, error) {
 }
 
 // Set a byte array in the cache.
-func (s *Server) Set(ctx context.Context, val *ByteValue) (*Null, error) {
+func (s *Server) Set(ctx context.Context, val *pb.ByteValue) (*pb.Null, error) {
 	bkey := StringToBytes(val.Key)
 	if len(bkey) == 0 || bytes.Equal(bkey, ZeroByte) {
 		return null, ErrInvalidKey
@@ -135,21 +136,21 @@ func (s *Server) Set(ctx context.Context, val *ByteValue) (*Null, error) {
 	keyLock := getLockName(val.Key)
 
 	for {
-		if res, err := s.cache.Server.Txn(ctx, &pb.TxnRequest{
-			Compare: []*pb.Compare{
+		if res, err := s.cache.Server.Txn(ctx, &etcdpb.TxnRequest{
+			Compare: []*etcdpb.Compare{
 				{
 					Key:    keyLock,
-					Target: pb.Compare_VALUE,
-					Result: pb.Compare_EQUAL,
-					TargetUnion: &pb.Compare_Value{
+					Target: etcdpb.Compare_VALUE,
+					Result: etcdpb.Compare_EQUAL,
+					TargetUnion: &etcdpb.Compare_Value{
 						Value: ZeroByte,
 					},
 				},
 			},
-			Failure: []*pb.RequestOp{
+			Failure: []*etcdpb.RequestOp{
 				{
-					Request: &pb.RequestOp_RequestPut{
-						RequestPut: &pb.PutRequest{
+					Request: &etcdpb.RequestOp_RequestPut{
+						RequestPut: &etcdpb.PutRequest{
 							Key:   StringToBytes(val.Key),
 							Value: val.Value,
 						},
@@ -171,29 +172,29 @@ func (s *Server) Set(ctx context.Context, val *ByteValue) (*Null, error) {
 }
 
 // SetNX sets a value only if the key doesn't exist, returns true if changed.
-func (s *Server) SetNX(ctx context.Context, val *ByteValue) (*Bool, error) {
-	key := &Key{Key: val.Key}
+func (s *Server) SetNX(ctx context.Context, val *pb.ByteValue) (*pb.Bool, error) {
+	key := &pb.Key{Key: val.Key}
 	if _, err := s.Lock(ctx, key); err != nil {
 		return nil, err
 	}
 	if b, err := s.Has(ctx, key); err != nil {
 		return nil, err
 	} else if b.Value {
-		return &Bool{Value: false}, nil
+		return &pb.Bool{Value: false}, nil
 	}
 
 	if _, err := s.UnlockThenSet(ctx, val); err != nil {
 		return nil, err
 	}
-	return &Bool{Value: true}, nil
+	return &pb.Bool{Value: true}, nil
 }
 
 // SetMany sets multiple byte arrays. Returns a map[key]errorText of any errors encountered.
-func (s *Server) SetMany(ctx context.Context, h *Hash) (*ErrorHash, error) {
-	errors := &ErrorHash{Errors: map[string]string{}}
+func (s *Server) SetMany(ctx context.Context, h *pb.Hash) (*pb.ErrorHash, error) {
+	errors := &pb.ErrorHash{Errors: map[string]string{}}
 
 	for key, val := range h.Value {
-		bv := &ByteValue{Key: key, Value: val}
+		bv := &pb.ByteValue{Key: key, Value: val}
 		_, err := s.Set(ctx, bv)
 		if err != nil {
 			errors.Errors[key] = err.Error()
@@ -203,10 +204,10 @@ func (s *Server) SetMany(ctx context.Context, h *Hash) (*ErrorHash, error) {
 }
 
 // Length returns the length of the value for the given key.
-func (s *Server) Length(ctx context.Context, key *Key) (*IntValue, error) {
+func (s *Server) Length(ctx context.Context, key *pb.Key) (*pb.IntValue, error) {
 	bv, err := s.Get(ctx, key)
 	if err != nil {
 		return nil, err
 	}
-	return &IntValue{Value: int64(len(bv.Value))}, nil
+	return &pb.IntValue{Value: int64(len(bv.Value))}, nil
 }

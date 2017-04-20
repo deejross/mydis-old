@@ -14,15 +14,19 @@
 
 package mydis
 
-import "testing"
-import "bytes"
-import "time"
-import "github.com/coreos/etcd/etcdserver"
+import (
+	"bytes"
+	"testing"
+	"time"
+
+	"github.com/coreos/etcd/etcdserver"
+	"github.com/deejross/mydis/pb"
+)
 
 func TestSet(t *testing.T) {
 	testReset()
 
-	if _, err := server.Set(ctx, &ByteValue{Key: "key1", Value: []byte("val1")}); err != nil {
+	if _, err := server.Set(ctx, &pb.ByteValue{Key: "key1", Value: []byte("val1")}); err != nil {
 		t.Error(err)
 	}
 }
@@ -30,13 +34,13 @@ func TestSet(t *testing.T) {
 func TestSetNX(t *testing.T) {
 	testReset()
 
-	if b, err := server.SetNX(ctx, &ByteValue{Key: "key1", Value: []byte("val1")}); err != nil {
+	if b, err := server.SetNX(ctx, &pb.ByteValue{Key: "key1", Value: []byte("val1")}); err != nil {
 		t.Error(err)
 	} else if b.Value {
 		t.Error("Should not have set value as it already exists")
 	}
 
-	if b, err := server.SetNX(ctx, &ByteValue{Key: "key2", Value: []byte("val2")}); err != nil {
+	if b, err := server.SetNX(ctx, &pb.ByteValue{Key: "key2", Value: []byte("val2")}); err != nil {
 		t.Error(err)
 	} else if !b.Value {
 		t.Error("Should have set value as it doesn't already exist")
@@ -46,7 +50,7 @@ func TestSetNX(t *testing.T) {
 func TestSetMany(t *testing.T) {
 	testReset()
 
-	if errors, err := server.SetMany(ctx, &Hash{Value: map[string][]byte{
+	if errors, err := server.SetMany(ctx, &pb.Hash{Value: map[string][]byte{
 		"key2": []byte("val2"),
 		"key3": []byte("val3"),
 	}}); err != nil {
@@ -57,7 +61,7 @@ func TestSetMany(t *testing.T) {
 }
 
 func TestGet(t *testing.T) {
-	if bv, err := server.Get(ctx, &Key{Key: "key1"}); err != nil {
+	if bv, err := server.Get(ctx, &pb.Key{Key: "key1"}); err != nil {
 		t.Error(err)
 	} else if !bytes.Equal(bv.Value, []byte("val1")) {
 		t.Error("Unexpected value:", bv.Value)
@@ -65,7 +69,7 @@ func TestGet(t *testing.T) {
 }
 
 func TestGetMany(t *testing.T) {
-	if h, err := server.GetMany(ctx, &KeysList{Keys: []string{"key1", "key2"}}); err != nil {
+	if h, err := server.GetMany(ctx, &pb.KeysList{Keys: []string{"key1", "key2"}}); err != nil {
 		t.Error(err)
 	} else if len(h.Value) != 2 {
 		t.Error("Unexpected response:", h)
@@ -75,7 +79,7 @@ func TestGetMany(t *testing.T) {
 }
 
 func TestGetWithPrefix(t *testing.T) {
-	if bh, err := server.GetWithPrefix(ctx, &Key{Key: "key"}); err != nil {
+	if bh, err := server.GetWithPrefix(ctx, &pb.Key{Key: "key"}); err != nil {
 		t.Error(err)
 	} else if len(bh.Value) < 3 {
 		t.Error("Unexpected response:", bh.Value)
@@ -83,17 +87,17 @@ func TestGetWithPrefix(t *testing.T) {
 }
 
 func TestGetBlocking(t *testing.T) {
-	if _, err := server.Get(ctx, &Key{Key: "key1", Block: true, BlockTimeout: 1}); err != nil {
+	if _, err := server.Get(ctx, &pb.Key{Key: "key1", Block: true, BlockTimeout: 1}); err != nil {
 		t.Error(err)
 	}
 
 	go func() {
 		time.Sleep(100 * time.Millisecond)
-		if _, err := server.Set(ctx, &ByteValue{Key: "keyBlock", Value: []byte("val")}); err != nil {
+		if _, err := server.Set(ctx, &pb.ByteValue{Key: "keyBlock", Value: []byte("val")}); err != nil {
 			t.Error(err)
 		}
 	}()
-	if bv, err := server.Get(ctx, &Key{Key: "keyBlock", Block: true, BlockTimeout: 1}); err != nil {
+	if bv, err := server.Get(ctx, &pb.Key{Key: "keyBlock", Block: true, BlockTimeout: 1}); err != nil {
 		t.Error(err)
 	} else if len(bv.Value) != 3 {
 		t.Error("Unexpected response:", bv.Value)
@@ -101,14 +105,14 @@ func TestGetBlocking(t *testing.T) {
 }
 
 func TestGetBlockingTimeout(t *testing.T) {
-	server.Delete(ctx, &Key{Key: "keyBlock"})
-	if _, err := server.Get(ctx, &Key{Key: "keyBlock", Block: true, BlockTimeout: 1}); err != etcdserver.ErrKeyNotFound {
+	server.Delete(ctx, &pb.Key{Key: "keyBlock"})
+	if _, err := server.Get(ctx, &pb.Key{Key: "keyBlock", Block: true, BlockTimeout: 1}); err != etcdserver.ErrKeyNotFound {
 		t.Error("Unexpected response:", err)
 	}
 }
 
 func TestLength(t *testing.T) {
-	if iv, err := server.Length(ctx, &Key{Key: "key1"}); err != nil {
+	if iv, err := server.Length(ctx, &pb.Key{Key: "key1"}); err != nil {
 		t.Error(err)
 	} else if iv.Value != 4 {
 		t.Error("Unexpected value:", iv.Value)
