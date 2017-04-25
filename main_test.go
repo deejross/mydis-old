@@ -78,7 +78,6 @@ func TestMain(m *testing.M) {
 	defaultPeerConfig.PeerAutoTLS = true
 	defaultPeerConfig.InitialClusterToken = "unit-test-cluster"
 	defaultPeerConfig.InitialCluster = clusterName
-	defaultPeerConfig.EnableV2 = false
 
 	// setup the first node in the cluster
 	peer1Config := CopyConfig(defaultPeerConfig)

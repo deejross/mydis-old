@@ -17,7 +17,6 @@ package mydis
 import (
 	"strings"
 
-	"github.com/coreos/etcd/etcdserver"
 	"github.com/deejross/mydis/pb"
 	"github.com/gogo/protobuf/proto"
 	"golang.org/x/net/context"
@@ -56,7 +55,7 @@ func (s *Server) IncrementFloat(ctx context.Context, fv *pb.FloatValue) (*pb.Flo
 	}
 
 	oldfv, err := s.GetFloat(ctx, key)
-	if err == etcdserver.ErrKeyNotFound {
+	if err == ErrKeyNotFound {
 		oldfv = &pb.FloatValue{Value: 0}
 	} else if err != nil {
 		s.Unlock(ctx, key)

@@ -1,13 +1,12 @@
 package: github.com/deejross/mydis
 import:
-- package: github.com/golang/protobuf
-  subpackages:
-  - proto
-- package: google.golang.org/grpc
-  subpackages:
-  - grpclog
-  - metadata
 - package: github.com/coreos/etcd
+  version: ^3.1.6
 - package: github.com/gorilla/websocket
   version: ^1.1.0
-- package: google.golang.org/genproto
+- package: github.com/golang/protobuf
+  version: 4bd1920723d7b7c925de087aa32e2187708897f7
+- package: github.com/grpc-ecosystem/grpc-gateway
+  version: 84398b94e188ee336f307779b57b3aa91af7063c
+- package: google.golang.org/grpc
+  version: v1.0.4

@@ -19,7 +19,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/coreos/etcd/etcdserver"
 	"github.com/deejross/mydis/pb"
 )
 
@@ -106,7 +105,7 @@ func TestGetBlocking(t *testing.T) {
 
 func TestGetBlockingTimeout(t *testing.T) {
 	server.Delete(ctx, &pb.Key{Key: "keyBlock"})
-	if _, err := server.Get(ctx, &pb.Key{Key: "keyBlock", Block: true, BlockTimeout: 1}); err != etcdserver.ErrKeyNotFound {
+	if _, err := server.Get(ctx, &pb.Key{Key: "keyBlock", Block: true, BlockTimeout: 1}); err != ErrKeyNotFound {
 		t.Error("Unexpected response:", err)
 	}
 }

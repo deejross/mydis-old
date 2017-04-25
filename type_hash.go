@@ -19,7 +19,6 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/coreos/etcd/etcdserver"
 	"github.com/deejross/mydis/pb"
 	"github.com/gogo/protobuf/proto"
 	"golang.org/x/net/context"
@@ -151,7 +150,7 @@ func (s *Server) SetHashField(ctx context.Context, hf *pb.HashField) (*pb.Null, 
 	}
 
 	h, err := s.GetHash(ctx, key)
-	if err == etcdserver.ErrKeyNotFound {
+	if err == ErrKeyNotFound {
 		h = &pb.Hash{Value: map[string][]byte{}}
 	} else if err != nil {
 		s.Unlock(ctx, key)
@@ -170,7 +169,7 @@ func (s *Server) SetHashFields(ctx context.Context, ah *pb.Hash) (*pb.Null, erro
 	}
 
 	h, err := s.GetHash(ctx, key)
-	if err == etcdserver.ErrKeyNotFound {
+	if err == ErrKeyNotFound {
 		h = &pb.Hash{Value: map[string][]byte{}}
 	} else if err != nil {
 		s.Unlock(ctx, key)

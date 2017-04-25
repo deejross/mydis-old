@@ -17,7 +17,6 @@ package mydis
 import (
 	"strings"
 
-	"github.com/coreos/etcd/etcdserver"
 	"github.com/deejross/mydis/pb"
 	"github.com/gogo/protobuf/proto"
 	"golang.org/x/net/context"
@@ -56,7 +55,7 @@ func (s *Server) IncrementInt(ctx context.Context, iv *pb.IntValue) (*pb.IntValu
 	}
 
 	oldiv, err := s.GetInt(ctx, key)
-	if err == etcdserver.ErrKeyNotFound {
+	if err == ErrKeyNotFound {
 		oldiv = &pb.IntValue{Value: 0}
 	} else if err != nil {
 		s.Unlock(ctx, key)

@@ -19,7 +19,6 @@ import (
 	"errors"
 	"time"
 
-	"github.com/coreos/etcd/etcdserver"
 	etcdpb "github.com/coreos/etcd/etcdserver/etcdserverpb"
 	"github.com/deejross/mydis/pb"
 	"golang.org/x/net/context"
@@ -30,13 +29,17 @@ var (
 	ErrInvalidKey = errors.New("Invalid key name")
 	// ErrTypeMismatch signals that the type of value being requested is unexpected.
 	ErrTypeMismatch = errors.New("Type mismatch")
+	// EtcdKeyNotFound is the error message Etcd uses to denote key was not found.
+	EtcdKeyNotFound = "Key not found"
 )
 
 // Get a byte array from the cache.
 func (s *Server) Get(ctx context.Context, key *pb.Key) (*pb.ByteValue, error) {
 	res, err := s.cache.Server.Range(ctx, getRangeRequestFromKey(key))
 
-	if err != nil {
+	if err != nil && err.Error() == EtcdKeyNotFound {
+		return &pb.ByteValue{}, ErrKeyNotFound
+	} else if err != nil {
 		return &pb.ByteValue{}, err
 	} else if res.Kvs == nil && key.Block {
 		waited := time.Duration(0)
@@ -44,7 +47,7 @@ func (s *Server) Get(ctx context.Context, key *pb.Key) (*pb.ByteValue, error) {
 
 		for {
 			key.Block = false
-			if res, err := s.Get(ctx, key); err == etcdserver.ErrKeyNotFound {
+			if res, err := s.Get(ctx, key); err == ErrKeyNotFound {
 				time.Sleep(sleep)
 				waited += sleep
 				if waited.Seconds() >= float64(key.BlockTimeout) && key.BlockTimeout > 0 {
@@ -58,7 +61,7 @@ func (s *Server) Get(ctx context.Context, key *pb.Key) (*pb.ByteValue, error) {
 		return &pb.ByteValue{Value: res.Kvs[0].Value}, nil
 	}
 
-	return &pb.ByteValue{}, etcdserver.ErrKeyNotFound
+	return &pb.ByteValue{}, ErrKeyNotFound
 }
 
 // GetMany gets a list of values from the cache.

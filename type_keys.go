@@ -17,7 +17,6 @@ package mydis
 import (
 	"time"
 
-	"github.com/coreos/etcd/etcdserver"
 	etcdpb "github.com/coreos/etcd/etcdserver/etcdserverpb"
 	"github.com/deejross/mydis/pb"
 	"golang.org/x/net/context"
@@ -55,7 +54,7 @@ func (s *Server) Has(ctx context.Context, key *pb.Key) (*pb.Bool, error) {
 		Key:      StringToBytes(key.Key),
 		KeysOnly: true,
 	})
-	if err == etcdserver.ErrKeyNotFound {
+	if err != nil && err.Error() == EtcdKeyNotFound {
 		return &pb.Bool{Value: false}, nil
 	} else if err != nil {
 		return nil, err
@@ -74,14 +73,15 @@ func (s *Server) SetExpire(ctx context.Context, ex *pb.Expiration) (*pb.Null, er
 	res, err := s.cache.Server.LeaseGrant(ctx, &etcdpb.LeaseGrantRequest{
 		TTL: ex.Exp,
 	})
-	if err != nil {
+	if err != nil && err.Error() == EtcdKeyNotFound {
+		return null, ErrKeyNotFound
+	} else if err != nil {
 		return null, err
 	}
 
 	_, err = s.cache.Server.Put(ctx, &etcdpb.PutRequest{
-		Key:         StringToBytes(ex.Key),
-		IgnoreValue: true,
-		Lease:       res.ID,
+		Key:   StringToBytes(ex.Key),
+		Lease: res.ID,
 	})
 
 	return null, err

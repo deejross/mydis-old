@@ -20,7 +20,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/coreos/etcd/etcdserver"
 	"github.com/deejross/mydis/pb"
 	"github.com/gogo/protobuf/proto"
 	"golang.org/x/net/context"
@@ -157,7 +156,7 @@ func (s *Server) ListInsert(ctx context.Context, li *pb.ListItem) (*pb.Null, err
 	}
 
 	lst, err := s.GetList(ctx, key)
-	if err == etcdserver.ErrKeyNotFound {
+	if err == ErrKeyNotFound {
 		lst = &pb.List{Value: [][]byte{}}
 	} else if err != nil {
 		s.Unlock(ctx, key)
@@ -188,7 +187,7 @@ func (s *Server) ListAppend(ctx context.Context, li *pb.ListItem) (*pb.Null, err
 	}
 
 	lst, err := s.GetList(ctx, key)
-	if err == etcdserver.ErrKeyNotFound {
+	if err == ErrKeyNotFound {
 		lst = &pb.List{Value: [][]byte{}}
 	} else if err != nil {
 		s.Unlock(ctx, key)
@@ -210,9 +209,9 @@ func (s *Server) ListPopLeft(ctx context.Context, key *pb.Key) (*pb.ByteValue, e
 	block := key.Block
 	key.Block = false
 	lst, err := s.GetList(ctx, key)
-	if err == etcdserver.ErrKeyNotFound && block {
+	if err == ErrKeyNotFound && block {
 		lst = &pb.List{Value: [][]byte{}}
-	} else if err == etcdserver.ErrKeyNotFound {
+	} else if err == ErrKeyNotFound {
 		s.Unlock(ctx, key)
 		return &pb.ByteValue{}, ErrListEmpty
 	} else if err != nil {
@@ -228,7 +227,7 @@ func (s *Server) ListPopLeft(ctx context.Context, key *pb.Key) (*pb.ByteValue, e
 		sleep := 10 * time.Millisecond
 
 		for {
-			if res, err := s.ListPopLeft(ctx, key); err == etcdserver.ErrKeyNotFound || err == ErrListEmpty {
+			if res, err := s.ListPopLeft(ctx, key); err == ErrKeyNotFound || err == ErrListEmpty {
 				time.Sleep(sleep)
 				waited += sleep
 				if waited.Seconds() >= float64(key.BlockTimeout) && key.BlockTimeout > 0 {
@@ -261,9 +260,9 @@ func (s *Server) ListPopRight(ctx context.Context, key *pb.Key) (*pb.ByteValue, 
 	block := key.Block
 	key.Block = false
 	lst, err := s.GetList(ctx, key)
-	if err == etcdserver.ErrKeyNotFound && block {
+	if err == ErrKeyNotFound && block {
 		lst = &pb.List{Value: [][]byte{}}
-	} else if err == etcdserver.ErrKeyNotFound {
+	} else if err == ErrKeyNotFound {
 		s.Unlock(ctx, key)
 		return &pb.ByteValue{}, ErrListEmpty
 	} else if err != nil {
@@ -280,7 +279,7 @@ func (s *Server) ListPopRight(ctx context.Context, key *pb.Key) (*pb.ByteValue, 
 
 		for {
 			key.Block = false
-			if res, err := s.ListPopRight(ctx, key); err == etcdserver.ErrKeyNotFound || err == ErrListEmpty {
+			if res, err := s.ListPopRight(ctx, key); err == ErrKeyNotFound || err == ErrListEmpty {
 				time.Sleep(sleep)
 				waited += sleep
 				if waited.Seconds() >= float64(key.BlockTimeout) && key.BlockTimeout > 0 {
@@ -308,7 +307,7 @@ func (s *Server) ListPopRight(ctx context.Context, key *pb.Key) (*pb.ByteValue, 
 // ListHas determines if the given value exists in the list, returns index or -1 if not found.
 func (s *Server) ListHas(ctx context.Context, li *pb.ListItem) (*pb.IntValue, error) {
 	lst, err := s.GetList(ctx, &pb.Key{Key: li.Key})
-	if err == etcdserver.ErrKeyNotFound {
+	if err == ErrKeyNotFound {
 		return &pb.IntValue{Value: -1}, nil
 	} else if err != nil {
 		return &pb.IntValue{}, err
@@ -364,7 +363,7 @@ func (s *Server) ListDeleteItem(ctx context.Context, li *pb.ListItem) (*pb.IntVa
 	}
 
 	lst, err := s.GetList(ctx, key)
-	if err == etcdserver.ErrKeyNotFound {
+	if err == ErrKeyNotFound {
 		s.Unlock(ctx, key)
 		return &pb.IntValue{Value: -1}, nil
 	} else if err != nil {

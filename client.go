@@ -36,12 +36,12 @@ import (
 )
 
 var (
-	// ErrKeyNotFound is the client side representation of etcdserver.ErrKeyNotFound.
+	// ErrKeyNotFound indicates the given key was not found.
 	ErrKeyNotFound = errors.New("Key not found")
 )
 
 var knownErrors = map[string]error{
-	"etcdserver: key not found":      ErrKeyNotFound,
+	EtcdKeyNotFound:                  ErrKeyNotFound,
 	"Key is locked":                  ErrKeyLocked,
 	"List is empty":                  ErrListEmpty,
 	"etcdserver: Index out of range": ErrListIndexOutOfRange,

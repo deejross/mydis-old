@@ -30,6 +30,16 @@ go get -u google.golang.org/grpc
 go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway
 ```
 
+When using `go get` on these packages, it will pull from the master branch and doing so will cause a lot of things to break since the latest versions of all three libraries are currently incompatible with one another. It is best to force the use of the version that Mydis currently uses. After running the `go get` commands above, run the following:
+```bash
+cd $GOPATH/src/google.golang.org/grpc
+git checkout v1.0.4
+cd $GOPATH/src/github.com/grpc-ecosystem/grpc-gateway
+git checkout 84398b94e188ee336f307779b57b3aa91af7063c
+cd $GOPATH/src/golang/protobuf
+git checkout 4bd1920723d7b7c925de087aa32e2187708897f7
+```
+
 Clone This Repo
 ---------------
 The recommended destination for this repo is `$GOPATH/src/github.com/deejross/mydis` you can clone using the Git CLI:
