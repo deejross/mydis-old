@@ -248,7 +248,9 @@ if err := server.Start(":8000", ":8383"); err != nil {
 
 **Client**
 ```go
-client := mydis.NewClient(mydis.NewClientConfig("localhost:8383"))
+import myClient "github.com/deejross/mydis/client"
+
+client := myClient.NewClient(myClient.NewClientConfig("localhost:8383"))
 s, err := client.Get("key").String()
 if err != nil {
 	return err

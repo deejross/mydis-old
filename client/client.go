@@ -103,8 +103,8 @@ func (sr *staticResolver) Next() ([]*naming.Update, error) {
 // Close does nothing
 func (sr *staticResolver) Close() {}
 
-// ClientConfig object.
-type ClientConfig struct {
+// Config object.
+type Config struct {
 	Addresses    []string
 	TLS          *tls.Config
 	AutoTLS      bool
@@ -113,16 +113,16 @@ type ClientConfig struct {
 }
 
 // NewClientConfig returns a new ClientConfig with default values.
-func NewClientConfig(address string) ClientConfig {
-	return ClientConfig{
+func NewClientConfig(address string) Config {
+	return Config{
 		Addresses: []string{address},
 		AutoTLS:   true,
 	}
 }
 
 // NewClientConfigAddresses returns a new ClientConfig multiple node addresses.
-func NewClientConfigAddresses(addresses []string) ClientConfig {
-	return ClientConfig{
+func NewClientConfigAddresses(addresses []string) Config {
+	return Config{
 		Addresses: addresses,
 		AutoTLS:   true,
 	}
@@ -132,7 +132,7 @@ func NewClientConfigAddresses(addresses []string) ClientConfig {
 type Client struct {
 	authToken string
 	cancel    context.CancelFunc
-	config    ClientConfig
+	config    Config
 	ctx       context.Context
 	closeCh   chan struct{}
 	closing   bool
@@ -148,7 +148,7 @@ type Client struct {
 }
 
 // NewClient returns a new Client object.
-func NewClient(config ClientConfig) (*Client, error) {
+func NewClient(config Config) (*Client, error) {
 	if config.AutoTLS {
 		var err error
 		config.TLS, err = util.NewSelfCerts("Mydis")
