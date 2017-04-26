@@ -1,3 +1,17 @@
+// Copyright 2017 Ross Peoples
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package main
 
 import (
@@ -10,7 +24,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/deejross/mydis"
+	mydisBase "github.com/deejross/mydis"
+	mydis "github.com/deejross/mydis/client"
+	"github.com/deejross/mydis/pb"
+	"github.com/deejross/mydis/util"
 )
 
 var help = map[string][]string{
@@ -104,7 +121,7 @@ func main() {
 			os.Exit(0)
 		}
 	} else {
-		fmt.Println("Mydis Command Line Interface, Version:", mydis.VERSION)
+		fmt.Println("Mydis Command Line Interface, Version:", mydisBase.VERSION)
 		fmt.Println("Connected. Type 'help' for a list of commands.")
 		startEventHandler(client)
 
@@ -566,7 +583,7 @@ func command(client *mydis.Client, cmd string, args []string) error {
 	} else if cmd == "ROLEGRANTPERM" {
 		if len(args) >= 3 {
 			role := args[0]
-			perm := mydis.GetPermission(args[1], args[2])
+			perm := mydisBase.GetPermission(args[1], args[2])
 			if perm == nil {
 				return errors.New("Unrecognized permType: " + args[2])
 			}
@@ -576,7 +593,7 @@ func command(client *mydis.Client, cmd string, args []string) error {
 	} else if cmd == "ROLEREVOKEPERM" {
 		if len(args) >= 3 {
 			role := args[0]
-			perm := mydis.GetPermission(args[1], args[2])
+			perm := mydisBase.GetPermission(args[1], args[2])
 			if perm == nil {
 				return errors.New("Unrecognized permType: " + args[2])
 			}
@@ -659,7 +676,7 @@ func displayList(result []string) {
 	}
 }
 
-func displayValList(result []mydis.Value) {
+func displayValList(result []util.Value) {
 	if len(result) == 0 {
 		fmt.Println("")
 	}
@@ -670,7 +687,7 @@ func displayValList(result []mydis.Value) {
 	}
 }
 
-func displayMap(result map[string]mydis.Value) {
+func displayMap(result map[string]util.Value) {
 	if len(result) == 0 {
 		fmt.Println("")
 	}
@@ -686,7 +703,7 @@ func displayMap(result map[string]mydis.Value) {
 	}
 }
 
-func displayPerms(result []*mydis.Permission) {
+func displayPerms(result []*pb.Permission) {
 	if len(result) == 0 {
 		fmt.Println("")
 	}
@@ -698,7 +715,7 @@ func displayPerms(result []*mydis.Permission) {
 		}
 	}
 	for _, perm := range result {
-		key := mydis.BytesToString(perm.Key)
+		key := util.BytesToString(perm.Key)
 		if len(perm.RangeEnd) == 1 && perm.RangeEnd[0] == byte(0) {
 			key += "*"
 		}
@@ -706,7 +723,7 @@ func displayPerms(result []*mydis.Permission) {
 			padding := strings.Repeat(" ", maxPermLen-len(key))
 			key += padding
 		}
-		permName := mydis.Permission_Type_name[int32(perm.PermType)]
+		permName := pb.Permission_Type_name[int32(perm.PermType)]
 		fmt.Println(key, ":", permName)
 	}
 }
@@ -719,9 +736,9 @@ func startEventHandler(client *mydis.Client) {
 			case <-closeCh:
 				return
 			case e := <-ch:
-				t := mydis.Event_EventType_name[int32(e.Type)]
+				t := pb.Event_EventType_name[int32(e.Type)]
 				if len(e.Current.Value) > 0 {
-					fmt.Println("EVENT", t, e.Current.Key, mydis.BytesToString(e.Current.Value))
+					fmt.Println("EVENT", t, e.Current.Key, util.BytesToString(e.Current.Value))
 				} else {
 					fmt.Println("EVENT", t, e.Current.Key)
 				}

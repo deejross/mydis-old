@@ -26,6 +26,7 @@ import (
 	"sync"
 
 	"github.com/coreos/etcd/embed"
+	myc "github.com/deejross/mydis/client"
 	"github.com/deejross/mydis/pb"
 	"google.golang.org/grpc/metadata"
 )
@@ -34,7 +35,7 @@ var server *Server
 var peer1 *Server
 var peer2 *Server
 var peer3 *Server
-var client *Client
+var client *myc.Client
 var ctx = context.Background()
 
 func TestMain(m *testing.M) {
@@ -154,7 +155,7 @@ func TestMain(m *testing.M) {
 	wg.Wait()
 
 	var err error
-	client, err = NewClient(NewClientConfig("localhost:8383"))
+	client, err = myc.NewClient(myc.NewClientConfig("localhost:8383"))
 	client.SetLockTimeout(1)
 	if err != nil {
 		log.Println(err)
@@ -183,21 +184,21 @@ func TestMain(m *testing.M) {
 }
 
 func TestCluster(t *testing.T) {
-	var client1, client2, client3 *Client
+	var client1, client2, client3 *myc.Client
 	var err error
-	client1, err = NewClient(NewClientConfig("localhost:8384"))
+	client1, err = myc.NewClient(myc.NewClientConfig("localhost:8384"))
 	client1.SetLockTimeout(1)
 	if err != nil {
 		log.Println(err)
 		os.Exit(1)
 	}
-	client2, err = NewClient(NewClientConfig("localhost:8385"))
+	client2, err = myc.NewClient(myc.NewClientConfig("localhost:8385"))
 	client2.SetLockTimeout(1)
 	if err != nil {
 		log.Println(err)
 		os.Exit(1)
 	}
-	client3, err = NewClient(NewClientConfig("localhost:8386"))
+	client3, err = myc.NewClient(myc.NewClientConfig("localhost:8386"))
 	client3.SetLockTimeout(1)
 	if err != nil {
 		log.Println(err)

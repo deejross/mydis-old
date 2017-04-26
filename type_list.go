@@ -16,20 +16,13 @@ package mydis
 
 import (
 	"bytes"
-	"errors"
 	"strings"
 	"time"
 
 	"github.com/deejross/mydis/pb"
+	"github.com/deejross/mydis/util"
 	"github.com/gogo/protobuf/proto"
 	"golang.org/x/net/context"
-)
-
-var (
-	// ErrListEmpty signals that the List is empty.
-	ErrListEmpty = errors.New("List is empty")
-	// ErrListIndexOutOfRange signals that the given index is out of range of the list.
-	ErrListIndexOutOfRange = errors.New("Index out of range")
 )
 
 // GetList from the cache.
@@ -40,7 +33,7 @@ func (s *Server) GetList(ctx context.Context, key *pb.Key) (*pb.List, error) {
 	}
 	lst := &pb.List{}
 	if err := proto.Unmarshal(res.Value, lst); err != nil && strings.HasPrefix(err.Error(), "proto: can't skip unknown wire type") {
-		return nil, ErrTypeMismatch
+		return nil, util.ErrTypeMismatch
 	} else if err != nil {
 		return nil, err
 	}
@@ -55,7 +48,7 @@ func (s *Server) GetListItem(ctx context.Context, li *pb.ListItem) (*pb.ByteValu
 	}
 	length := int64(len(lst.Value))
 	if length == 0 {
-		return nil, ErrListEmpty
+		return nil, util.ErrListEmpty
 	}
 	if li.Index-1 > length {
 		li.Index = length - 1
@@ -98,15 +91,15 @@ func (s *Server) SetListItem(ctx context.Context, li *pb.ListItem) (*pb.Null, er
 	length := int64(len(lst.Value))
 	if length == 0 {
 		s.Unlock(ctx, key)
-		return null, ErrListEmpty
+		return null, util.ErrListEmpty
 	}
 	if li.Index-1 > length {
 		s.Unlock(ctx, key)
-		return null, ErrListIndexOutOfRange
+		return null, util.ErrListIndexOutOfRange
 	}
 	if li.Index < 0 && li.Index*-1-1 > length {
 		s.Unlock(ctx, key)
-		return null, ErrListIndexOutOfRange
+		return null, util.ErrListIndexOutOfRange
 	}
 
 	if li.Index >= 0 {
@@ -156,7 +149,7 @@ func (s *Server) ListInsert(ctx context.Context, li *pb.ListItem) (*pb.Null, err
 	}
 
 	lst, err := s.GetList(ctx, key)
-	if err == ErrKeyNotFound {
+	if err == util.ErrKeyNotFound {
 		lst = &pb.List{Value: [][]byte{}}
 	} else if err != nil {
 		s.Unlock(ctx, key)
@@ -187,7 +180,7 @@ func (s *Server) ListAppend(ctx context.Context, li *pb.ListItem) (*pb.Null, err
 	}
 
 	lst, err := s.GetList(ctx, key)
-	if err == ErrKeyNotFound {
+	if err == util.ErrKeyNotFound {
 		lst = &pb.List{Value: [][]byte{}}
 	} else if err != nil {
 		s.Unlock(ctx, key)
@@ -209,11 +202,11 @@ func (s *Server) ListPopLeft(ctx context.Context, key *pb.Key) (*pb.ByteValue, e
 	block := key.Block
 	key.Block = false
 	lst, err := s.GetList(ctx, key)
-	if err == ErrKeyNotFound && block {
+	if err == util.ErrKeyNotFound && block {
 		lst = &pb.List{Value: [][]byte{}}
-	} else if err == ErrKeyNotFound {
+	} else if err == util.ErrKeyNotFound {
 		s.Unlock(ctx, key)
-		return &pb.ByteValue{}, ErrListEmpty
+		return &pb.ByteValue{}, util.ErrListEmpty
 	} else if err != nil {
 		s.Unlock(ctx, key)
 		return &pb.ByteValue{}, err
@@ -227,7 +220,7 @@ func (s *Server) ListPopLeft(ctx context.Context, key *pb.Key) (*pb.ByteValue, e
 		sleep := 10 * time.Millisecond
 
 		for {
-			if res, err := s.ListPopLeft(ctx, key); err == ErrKeyNotFound || err == ErrListEmpty {
+			if res, err := s.ListPopLeft(ctx, key); err == util.ErrKeyNotFound || err == util.ErrListEmpty {
 				time.Sleep(sleep)
 				waited += sleep
 				if waited.Seconds() >= float64(key.BlockTimeout) && key.BlockTimeout > 0 {
@@ -239,7 +232,7 @@ func (s *Server) ListPopLeft(ctx context.Context, key *pb.Key) (*pb.ByteValue, e
 		}
 	} else if len(lst.Value) == 0 {
 		s.Unlock(ctx, key)
-		return &pb.ByteValue{}, ErrListEmpty
+		return &pb.ByteValue{}, util.ErrListEmpty
 	}
 
 	b := lst.Value[0]
@@ -260,11 +253,11 @@ func (s *Server) ListPopRight(ctx context.Context, key *pb.Key) (*pb.ByteValue, 
 	block := key.Block
 	key.Block = false
 	lst, err := s.GetList(ctx, key)
-	if err == ErrKeyNotFound && block {
+	if err == util.ErrKeyNotFound && block {
 		lst = &pb.List{Value: [][]byte{}}
-	} else if err == ErrKeyNotFound {
+	} else if err == util.ErrKeyNotFound {
 		s.Unlock(ctx, key)
-		return &pb.ByteValue{}, ErrListEmpty
+		return &pb.ByteValue{}, util.ErrListEmpty
 	} else if err != nil {
 		s.Unlock(ctx, key)
 		return &pb.ByteValue{}, err
@@ -279,7 +272,7 @@ func (s *Server) ListPopRight(ctx context.Context, key *pb.Key) (*pb.ByteValue, 
 
 		for {
 			key.Block = false
-			if res, err := s.ListPopRight(ctx, key); err == ErrKeyNotFound || err == ErrListEmpty {
+			if res, err := s.ListPopRight(ctx, key); err == util.ErrKeyNotFound || err == util.ErrListEmpty {
 				time.Sleep(sleep)
 				waited += sleep
 				if waited.Seconds() >= float64(key.BlockTimeout) && key.BlockTimeout > 0 {
@@ -291,7 +284,7 @@ func (s *Server) ListPopRight(ctx context.Context, key *pb.Key) (*pb.ByteValue, 
 		}
 	} else if len(lst.Value) == 0 {
 		s.Unlock(ctx, key)
-		return &pb.ByteValue{}, ErrListEmpty
+		return &pb.ByteValue{}, util.ErrListEmpty
 	}
 
 	length := len(lst.Value)
@@ -307,7 +300,7 @@ func (s *Server) ListPopRight(ctx context.Context, key *pb.Key) (*pb.ByteValue, 
 // ListHas determines if the given value exists in the list, returns index or -1 if not found.
 func (s *Server) ListHas(ctx context.Context, li *pb.ListItem) (*pb.IntValue, error) {
 	lst, err := s.GetList(ctx, &pb.Key{Key: li.Key})
-	if err == ErrKeyNotFound {
+	if err == util.ErrKeyNotFound {
 		return &pb.IntValue{Value: -1}, nil
 	} else if err != nil {
 		return &pb.IntValue{}, err
@@ -336,15 +329,15 @@ func (s *Server) ListDelete(ctx context.Context, li *pb.ListItem) (*pb.Null, err
 	length := int64(len(lst.Value))
 	if length == 0 {
 		s.Unlock(ctx, key)
-		return null, ErrListEmpty
+		return null, util.ErrListEmpty
 	}
 	if li.Index < 0 {
 		s.Unlock(ctx, key)
-		return null, ErrListIndexOutOfRange
+		return null, util.ErrListIndexOutOfRange
 	}
 	if li.Index-1 > length {
 		s.Unlock(ctx, key)
-		return null, ErrListIndexOutOfRange
+		return null, util.ErrListIndexOutOfRange
 	}
 
 	copy(lst.Value[li.Index:], lst.Value[li.Index+1:])
@@ -363,7 +356,7 @@ func (s *Server) ListDeleteItem(ctx context.Context, li *pb.ListItem) (*pb.IntVa
 	}
 
 	lst, err := s.GetList(ctx, key)
-	if err == ErrKeyNotFound {
+	if err == util.ErrKeyNotFound {
 		s.Unlock(ctx, key)
 		return &pb.IntValue{Value: -1}, nil
 	} else if err != nil {

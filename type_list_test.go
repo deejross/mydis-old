@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"github.com/deejross/mydis/pb"
+	"github.com/deejross/mydis/util"
 )
 
 func TestSetList(t *testing.T) {
@@ -88,7 +89,7 @@ func TestSetListItem(t *testing.T) {
 	} else if !bytes.Equal(bv.Value, []byte("end")) {
 		t.Error("Unexpected value:", bv.Value)
 	}
-	if _, err := server.SetListItem(ctx, &pb.ListItem{Key: "list1", Index: 10, Value: []byte("fail")}); err != ErrListIndexOutOfRange {
+	if _, err := server.SetListItem(ctx, &pb.ListItem{Key: "list1", Index: 10, Value: []byte("fail")}); err != util.ErrListIndexOutOfRange {
 		t.Error("Expected ErrListIndexOutOfRange")
 	}
 }
@@ -205,7 +206,7 @@ func TestListDelete(t *testing.T) {
 	if _, err := server.ListDelete(ctx, &pb.ListItem{Key: "list1", Index: 0}); err != nil {
 		t.Error(err)
 	}
-	if _, err := server.ListDelete(ctx, &pb.ListItem{Key: "list1", Index: 10}); err != ErrListIndexOutOfRange {
+	if _, err := server.ListDelete(ctx, &pb.ListItem{Key: "list1", Index: 10}); err != util.ErrListIndexOutOfRange {
 		t.Error("Expected ErrListIndexOutOfRange")
 	}
 

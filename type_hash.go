@@ -15,18 +15,13 @@
 package mydis
 
 import (
-	"errors"
 	"sort"
 	"strings"
 
 	"github.com/deejross/mydis/pb"
+	"github.com/deejross/mydis/util"
 	"github.com/gogo/protobuf/proto"
 	"golang.org/x/net/context"
-)
-
-var (
-	// ErrHashFieldNotFound signals that the hash does not have the given field.
-	ErrHashFieldNotFound = errors.New("Hash field does not exist")
 )
 
 // GetHash gets a hash from the cache.
@@ -37,7 +32,7 @@ func (s *Server) GetHash(ctx context.Context, key *pb.Key) (*pb.Hash, error) {
 	}
 	h := &pb.Hash{}
 	if err := proto.Unmarshal(res.Value, h); err != nil && strings.HasPrefix(err.Error(), "proto: can't skip unknown wire type") {
-		return nil, ErrTypeMismatch
+		return nil, util.ErrTypeMismatch
 	} else if err != nil {
 		return nil, err
 	}
@@ -53,7 +48,7 @@ func (s *Server) GetHashField(ctx context.Context, hf *pb.HashField) (*pb.ByteVa
 	if b, ok := h.Value[hf.Field]; ok {
 		return &pb.ByteValue{Value: b}, nil
 	}
-	return nil, ErrHashFieldNotFound
+	return nil, util.ErrHashFieldNotFound
 }
 
 // GetHashFields gets a list of values from a hash.
@@ -150,7 +145,7 @@ func (s *Server) SetHashField(ctx context.Context, hf *pb.HashField) (*pb.Null, 
 	}
 
 	h, err := s.GetHash(ctx, key)
-	if err == ErrKeyNotFound {
+	if err == util.ErrKeyNotFound {
 		h = &pb.Hash{Value: map[string][]byte{}}
 	} else if err != nil {
 		s.Unlock(ctx, key)
@@ -169,7 +164,7 @@ func (s *Server) SetHashFields(ctx context.Context, ah *pb.Hash) (*pb.Null, erro
 	}
 
 	h, err := s.GetHash(ctx, key)
-	if err == ErrKeyNotFound {
+	if err == util.ErrKeyNotFound {
 		h = &pb.Hash{Value: map[string][]byte{}}
 	} else if err != nil {
 		s.Unlock(ctx, key)

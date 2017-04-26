@@ -16,29 +16,20 @@ package mydis
 
 import (
 	"bytes"
-	"errors"
 	"time"
 
 	etcdpb "github.com/coreos/etcd/etcdserver/etcdserverpb"
 	"github.com/deejross/mydis/pb"
+	"github.com/deejross/mydis/util"
 	"golang.org/x/net/context"
-)
-
-var (
-	// ErrInvalidKey signals that the given key name is invalid.
-	ErrInvalidKey = errors.New("Invalid key name")
-	// ErrTypeMismatch signals that the type of value being requested is unexpected.
-	ErrTypeMismatch = errors.New("Type mismatch")
-	// EtcdKeyNotFound is the error message Etcd uses to denote key was not found.
-	EtcdKeyNotFound = "Key not found"
 )
 
 // Get a byte array from the cache.
 func (s *Server) Get(ctx context.Context, key *pb.Key) (*pb.ByteValue, error) {
 	res, err := s.cache.Server.Range(ctx, getRangeRequestFromKey(key))
 
-	if err != nil && err.Error() == EtcdKeyNotFound {
-		return &pb.ByteValue{}, ErrKeyNotFound
+	if err != nil && err.Error() == util.ErrKeyNotFound.Error() {
+		return &pb.ByteValue{}, util.ErrKeyNotFound
 	} else if err != nil {
 		return &pb.ByteValue{}, err
 	} else if res.Kvs == nil && key.Block {
@@ -47,7 +38,7 @@ func (s *Server) Get(ctx context.Context, key *pb.Key) (*pb.ByteValue, error) {
 
 		for {
 			key.Block = false
-			if res, err := s.Get(ctx, key); err == ErrKeyNotFound {
+			if res, err := s.Get(ctx, key); err == util.ErrKeyNotFound {
 				time.Sleep(sleep)
 				waited += sleep
 				if waited.Seconds() >= float64(key.BlockTimeout) && key.BlockTimeout > 0 {
@@ -61,7 +52,7 @@ func (s *Server) Get(ctx context.Context, key *pb.Key) (*pb.ByteValue, error) {
 		return &pb.ByteValue{Value: res.Kvs[0].Value}, nil
 	}
 
-	return &pb.ByteValue{}, ErrKeyNotFound
+	return &pb.ByteValue{}, util.ErrKeyNotFound
 }
 
 // GetMany gets a list of values from the cache.
@@ -88,7 +79,7 @@ func (s *Server) GetMany(ctx context.Context, keys *pb.KeysList) (*pb.Hash, erro
 		op := &etcdpb.RequestOp{
 			Request: &etcdpb.RequestOp_RequestRange{
 				RequestRange: &etcdpb.RangeRequest{
-					Key: StringToBytes(key),
+					Key: util.StringToBytes(key),
 				},
 			},
 		}
@@ -122,16 +113,16 @@ func (s *Server) GetWithPrefix(ctx context.Context, key *pb.Key) (*pb.Hash, erro
 
 	h := &pb.Hash{Value: map[string][]byte{}}
 	for _, kv := range res.Kvs {
-		h.Value[BytesToString(kv.Key)] = kv.Value
+		h.Value[util.BytesToString(kv.Key)] = kv.Value
 	}
 	return h, nil
 }
 
 // Set a byte array in the cache.
 func (s *Server) Set(ctx context.Context, val *pb.ByteValue) (*pb.Null, error) {
-	bkey := StringToBytes(val.Key)
+	bkey := util.StringToBytes(val.Key)
 	if len(bkey) == 0 || bytes.Equal(bkey, ZeroByte) {
-		return null, ErrInvalidKey
+		return null, util.ErrInvalidKey
 	}
 
 	maxW := s.getMaxWait(ctx)
@@ -154,7 +145,7 @@ func (s *Server) Set(ctx context.Context, val *pb.ByteValue) (*pb.Null, error) {
 				{
 					Request: &etcdpb.RequestOp_RequestPut{
 						RequestPut: &etcdpb.PutRequest{
-							Key:   StringToBytes(val.Key),
+							Key:   util.StringToBytes(val.Key),
 							Value: val.Value,
 						},
 					},
@@ -168,7 +159,7 @@ func (s *Server) Set(ctx context.Context, val *pb.ByteValue) (*pb.Null, error) {
 
 		time.Sleep(delay)
 		if time.Now().After(maxWait) {
-			return null, ErrKeyLocked
+			return null, util.ErrKeyLocked
 		}
 	}
 	return null, nil

@@ -19,6 +19,7 @@ import (
 
 	etcdpb "github.com/coreos/etcd/etcdserver/etcdserverpb"
 	"github.com/deejross/mydis/pb"
+	"github.com/deejross/mydis/util"
 	"golang.org/x/net/context"
 )
 
@@ -38,7 +39,7 @@ func (s *Server) Keys(ctx context.Context, null *pb.Null) (*pb.KeysList, error) 
 // KeysWithPrefix returns a list of keys with the given prefix.
 func (s *Server) KeysWithPrefix(ctx context.Context, key *pb.Key) (*pb.KeysList, error) {
 	res, err := s.cache.Server.Range(ctx, &etcdpb.RangeRequest{
-		Key:      StringToBytes(key.Key),
+		Key:      util.StringToBytes(key.Key),
 		RangeEnd: getPrefix(key.Key),
 		KeysOnly: true,
 	})
@@ -51,17 +52,17 @@ func (s *Server) KeysWithPrefix(ctx context.Context, key *pb.Key) (*pb.KeysList,
 // Has determines if the given key exists.
 func (s *Server) Has(ctx context.Context, key *pb.Key) (*pb.Bool, error) {
 	res, err := s.cache.Server.Range(ctx, &etcdpb.RangeRequest{
-		Key:      StringToBytes(key.Key),
+		Key:      util.StringToBytes(key.Key),
 		KeysOnly: true,
 	})
-	if err != nil && err.Error() == EtcdKeyNotFound {
+	if err != nil && err.Error() == util.ErrKeyNotFound.Error() {
 		return &pb.Bool{Value: false}, nil
 	} else if err != nil {
 		return nil, err
 	}
 
 	for _, kv := range res.Kvs {
-		if key.Key == BytesToString(kv.Key) {
+		if key.Key == util.BytesToString(kv.Key) {
 			return &pb.Bool{Value: true}, nil
 		}
 	}
@@ -73,14 +74,14 @@ func (s *Server) SetExpire(ctx context.Context, ex *pb.Expiration) (*pb.Null, er
 	res, err := s.cache.Server.LeaseGrant(ctx, &etcdpb.LeaseGrantRequest{
 		TTL: ex.Exp,
 	})
-	if err != nil && err.Error() == EtcdKeyNotFound {
-		return null, ErrKeyNotFound
+	if err != nil && err.Error() == util.ErrKeyNotFound.Error() {
+		return null, util.ErrKeyNotFound
 	} else if err != nil {
 		return null, err
 	}
 
 	_, err = s.cache.Server.Put(ctx, &etcdpb.PutRequest{
-		Key:   StringToBytes(ex.Key),
+		Key:   util.StringToBytes(ex.Key),
 		Lease: res.ID,
 	})
 
@@ -109,7 +110,7 @@ func (s *Server) Delete(ctx context.Context, key *pb.Key) (*pb.Null, error) {
 				{
 					Request: &etcdpb.RequestOp_RequestDeleteRange{
 						RequestDeleteRange: &etcdpb.DeleteRangeRequest{
-							Key: StringToBytes(key.Key),
+							Key: util.StringToBytes(key.Key),
 						},
 					},
 				},
@@ -122,7 +123,7 @@ func (s *Server) Delete(ctx context.Context, key *pb.Key) (*pb.Null, error) {
 
 		time.Sleep(delay)
 		if time.Now().After(maxWait) {
-			return null, ErrKeyLocked
+			return null, util.ErrKeyLocked
 		}
 	}
 	return null, nil

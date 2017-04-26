@@ -17,7 +17,6 @@ package mydis
 import (
 	"context"
 	"crypto/tls"
-	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -39,9 +38,6 @@ import (
 const (
 	delay = time.Duration(1) * time.Millisecond
 )
-
-// ErrKeyLocked menas that the key cannot be modified, as it's locked by another process.
-var ErrKeyLocked = errors.New("Key is locked")
 
 // Server object.
 type Server struct {

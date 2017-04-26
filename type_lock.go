@@ -22,6 +22,7 @@ import (
 
 	etcdpb "github.com/coreos/etcd/etcdserver/etcdserverpb"
 	"github.com/deejross/mydis/pb"
+	"github.com/deejross/mydis/util"
 	"github.com/gogo/protobuf/proto"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/metadata"
@@ -91,12 +92,12 @@ func (s *Server) LockWithTimeout(ctx context.Context, ex *pb.Expiration) (*pb.Nu
 		}
 
 		if ex.Exp == 0 {
-			return null, ErrKeyLocked
+			return null, util.ErrKeyLocked
 		}
 
 		time.Sleep(delay)
 		if time.Now().After(maxWait) && ex.Exp >= 0 {
-			return null, ErrKeyLocked
+			return null, util.ErrKeyLocked
 		}
 	}
 	return null, nil
@@ -104,14 +105,14 @@ func (s *Server) LockWithTimeout(ctx context.Context, ex *pb.Expiration) (*pb.Nu
 
 // Unlock a key for modifications.
 func (s *Server) Unlock(ctx context.Context, key *pb.Key) (*pb.Null, error) {
-	return s.Delete(ctx, &pb.Key{Key: BytesToString(getLockName(key.Key))})
+	return s.Delete(ctx, &pb.Key{Key: util.BytesToString(getLockName(key.Key))})
 }
 
 // UnlockThenSet unlocks a key, then immediately sets a new value for it.
 func (s *Server) UnlockThenSet(ctx context.Context, val *pb.ByteValue) (*pb.Null, error) {
-	bkey := StringToBytes(val.Key)
+	bkey := util.StringToBytes(val.Key)
 	if len(bkey) == 0 || bytes.Equal(bkey, ZeroByte) {
-		return null, ErrInvalidKey
+		return null, util.ErrInvalidKey
 	}
 	keyLock := getLockName(val.Key)
 	_, err := s.cache.Server.Txn(ctx, &etcdpb.TxnRequest{
@@ -136,7 +137,7 @@ func (s *Server) UnlockThenSet(ctx context.Context, val *pb.ByteValue) (*pb.Null
 			{
 				Request: &etcdpb.RequestOp_RequestPut{
 					RequestPut: &etcdpb.PutRequest{
-						Key:   StringToBytes(val.Key),
+						Key:   util.StringToBytes(val.Key),
 						Value: val.Value,
 					},
 				},

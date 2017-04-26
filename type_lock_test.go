@@ -18,6 +18,7 @@ import (
 	"testing"
 
 	"github.com/deejross/mydis/pb"
+	"github.com/deejross/mydis/util"
 )
 
 func TestLock(t *testing.T) {
@@ -28,11 +29,11 @@ func TestLock(t *testing.T) {
 	}
 
 	t.Log("INFO: This test will take about 2 seconds to complete")
-	if _, err := server.LockWithTimeout(ctx, &pb.Expiration{Key: "key1", Exp: 1}); err != ErrKeyLocked {
+	if _, err := server.LockWithTimeout(ctx, &pb.Expiration{Key: "key1", Exp: 1}); err != util.ErrKeyLocked {
 		t.Error("Unexpected or no error:", err)
 	}
 
-	if _, err := server.Set(ctx, &pb.ByteValue{Key: "key1", Value: []byte("val1")}); err != ErrKeyLocked {
+	if _, err := server.Set(ctx, &pb.ByteValue{Key: "key1", Value: []byte("val1")}); err != util.ErrKeyLocked {
 		t.Error("Unexpected or no error:", err)
 	}
 

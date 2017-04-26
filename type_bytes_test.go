@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"github.com/deejross/mydis/pb"
+	"github.com/deejross/mydis/util"
 )
 
 func TestSet(t *testing.T) {
@@ -105,7 +106,7 @@ func TestGetBlocking(t *testing.T) {
 
 func TestGetBlockingTimeout(t *testing.T) {
 	server.Delete(ctx, &pb.Key{Key: "keyBlock"})
-	if _, err := server.Get(ctx, &pb.Key{Key: "keyBlock", Block: true, BlockTimeout: 1}); err != ErrKeyNotFound {
+	if _, err := server.Get(ctx, &pb.Key{Key: "keyBlock", Block: true, BlockTimeout: 1}); err != util.ErrKeyNotFound {
 		t.Error("Unexpected response:", err)
 	}
 }

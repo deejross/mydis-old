@@ -12,10 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package mydis
+package client
 
 import (
-	"errors"
 	"io/ioutil"
 	"log"
 	"sync"
@@ -27,6 +26,7 @@ import (
 	"crypto/tls"
 
 	"github.com/deejross/mydis/pb"
+	"github.com/deejross/mydis/util"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -36,18 +36,18 @@ import (
 )
 
 var (
-	// ErrKeyNotFound indicates the given key was not found.
-	ErrKeyNotFound = errors.New("Key not found")
+	null                     = &pb.Null{}
+	suffixForKeysUsingPrefix = "*_MYDIS_WITHPREFIX"
 )
 
 var knownErrors = map[string]error{
-	EtcdKeyNotFound:                  ErrKeyNotFound,
-	"Key is locked":                  ErrKeyLocked,
-	"List is empty":                  ErrListEmpty,
-	"etcdserver: Index out of range": ErrListIndexOutOfRange,
-	"Hash field does not exist":      ErrHashFieldNotFound,
-	"Type mismatch":                  ErrTypeMismatch,
-	"Invalid key name":               ErrInvalidKey,
+	util.ErrKeyNotFound.Error():         util.ErrKeyNotFound,
+	util.ErrKeyLocked.Error():           util.ErrKeyLocked,
+	util.ErrListEmpty.Error():           util.ErrListEmpty,
+	util.ErrListIndexOutOfRange.Error(): util.ErrListIndexOutOfRange,
+	util.ErrHashFieldNotFound.Error():   util.ErrHashFieldNotFound,
+	util.ErrTypeMismatch.Error():        util.ErrTypeMismatch,
+	util.ErrInvalidKey.Error():          util.ErrInvalidKey,
 }
 
 func normalizeError(err error) error {
@@ -151,7 +151,7 @@ type Client struct {
 func NewClient(config ClientConfig) (*Client, error) {
 	if config.AutoTLS {
 		var err error
-		config.TLS, err = NewSelfCerts("Mydis")
+		config.TLS, err = util.NewSelfCerts("Mydis")
 		if err != nil {
 			return nil, err
 		}
@@ -271,8 +271,8 @@ func (c *Client) Unlock(key string) error {
 }
 
 // UnlockThenSet unlocks a key, then immediately sets its value.
-func (c *Client) UnlockThenSet(key string, v Value) error {
-	_, err := c.mc.UnlockThenSet(c.ctx, &pb.ByteValue{Key: key, Value: v.b})
+func (c *Client) UnlockThenSet(key string, v util.Value) error {
+	_, err := c.mc.UnlockThenSet(c.ctx, &pb.ByteValue{Key: key, Value: v.RawBytes()})
 	err = normalizeError(err)
 	return err
 }
@@ -292,48 +292,48 @@ func (c *Client) Clear() error {
 }
 
 // Get a value from the cache.
-func (c *Client) Get(key string) Value {
+func (c *Client) Get(key string) util.Value {
 	bv, err := c.mc.Get(c.ctx, &pb.Key{Key: key})
 	if err != nil {
 		err = normalizeError(err)
-		return NewValue(err)
+		return util.NewValue(err)
 	}
-	return NewValue(bv.Value)
+	return util.NewValue(bv.Value)
 }
 
 // GetMany gets multiple values from the cache.
-func (c *Client) GetMany(keys []string) (map[string]Value, error) {
+func (c *Client) GetMany(keys []string) (map[string]util.Value, error) {
 	h, err := c.mc.GetMany(c.ctx, &pb.KeysList{Keys: keys})
 	if err != nil {
 		err = normalizeError(err)
 		return nil, err
 	}
 
-	m := map[string]Value{}
+	m := map[string]util.Value{}
 	for k, v := range h.Value {
-		m[k] = NewValue(v)
+		m[k] = util.NewValue(v)
 	}
 	return m, nil
 }
 
 // GetWithPrefix gets the keys with the given prefix.
-func (c *Client) GetWithPrefix(prefix string) (map[string]Value, error) {
+func (c *Client) GetWithPrefix(prefix string) (map[string]util.Value, error) {
 	h, err := c.mc.GetWithPrefix(c.ctx, &pb.Key{Key: prefix})
 	if err != nil {
 		err = normalizeError(err)
 		return nil, err
 	}
 
-	m := map[string]Value{}
+	m := map[string]util.Value{}
 	for k, v := range h.Value {
-		m[k] = NewValue(v)
+		m[k] = util.NewValue(v)
 	}
 	return m, nil
 }
 
 // Set a value in the cache.
 func (c *Client) Set(key string, v interface{}) error {
-	b, err := NewValue(v).Bytes()
+	b, err := util.NewValue(v).Bytes()
 	if err != nil {
 		return err
 	}
@@ -348,7 +348,7 @@ func (c *Client) Set(key string, v interface{}) error {
 
 // SetNX sets a value only if the key doesn't exist, returns true if changed.
 func (c *Client) SetNX(key string, v interface{}) (bool, error) {
-	b, err := NewValue(v).Bytes()
+	b, err := util.NewValue(v).Bytes()
 	if err != nil {
 		return false, err
 	}
@@ -361,9 +361,9 @@ func (c *Client) SetNX(key string, v interface{}) (bool, error) {
 	return bool.Value, nil
 }
 
-// SetMany values, returning a map[key]errorText for any errors.
-func (c *Client) SetMany(vals map[string]Value) (map[string]string, error) {
-	h := &pb.Hash{Value: MapValueToMapBytes(vals)}
+// SetMany values, returning a map[key]errorText for any util.
+func (c *Client) SetMany(vals map[string]util.Value) (map[string]string, error) {
+	h := &pb.Hash{Value: util.MapValueToMapBytes(vals)}
 	m, err := c.mc.SetMany(c.ctx, h)
 	if err != nil {
 		err = normalizeError(err)
@@ -423,18 +423,18 @@ func (c *Client) DecrementFloat(key string, by float64) (float64, error) {
 }
 
 // GetListItem gets a single item from a list by index, supports negative indexing.
-func (c *Client) GetListItem(key string, index int64) Value {
+func (c *Client) GetListItem(key string, index int64) util.Value {
 	bv, err := c.mc.GetListItem(c.ctx, &pb.ListItem{Key: key, Index: index})
 	if err != nil {
 		err = normalizeError(err)
-		return NewValue(err)
+		return util.NewValue(err)
 	}
-	return NewValue(bv.Value)
+	return util.NewValue(bv.Value)
 }
 
 // SetListItem sets a single item in a list by index.
 func (c *Client) SetListItem(key string, index int64, v interface{}) error {
-	b, err := NewValue(v).Bytes()
+	b, err := util.NewValue(v).Bytes()
 	if err != nil {
 		return err
 	}
@@ -463,7 +463,7 @@ func (c *Client) ListLimit(key string, limit int64) error {
 
 // ListInsert inserts a new item at the given index in the list.
 func (c *Client) ListInsert(key string, index int64, v interface{}) error {
-	b, err := NewValue(v).Bytes()
+	b, err := util.NewValue(v).Bytes()
 	if err != nil {
 		return err
 	}
@@ -475,7 +475,7 @@ func (c *Client) ListInsert(key string, index int64, v interface{}) error {
 
 // ListAppend inserts a new item at the end of the list.
 func (c *Client) ListAppend(key string, v interface{}) error {
-	b, err := NewValue(v).Bytes()
+	b, err := util.NewValue(v).Bytes()
 	if err != nil {
 		return err
 	}
@@ -486,48 +486,48 @@ func (c *Client) ListAppend(key string, v interface{}) error {
 }
 
 // ListPopLeft returns and removes the first item in a list.
-func (c *Client) ListPopLeft(key string) Value {
+func (c *Client) ListPopLeft(key string) util.Value {
 	bv, err := c.mc.ListPopLeft(c.ctx, &pb.Key{Key: key})
 	if err != nil {
 		err = normalizeError(err)
-		return NewValue(err)
+		return util.NewValue(err)
 	}
-	return NewValue(bv.Value)
+	return util.NewValue(bv.Value)
 }
 
 // ListPopLeftBlock returns and removes the first item in a list, or waits the given number of seconds for a value, timeout of zero waits forever.
-func (c *Client) ListPopLeftBlock(key string, timeout int64) Value {
+func (c *Client) ListPopLeftBlock(key string, timeout int64) util.Value {
 	bv, err := c.mc.ListPopLeft(c.ctx, &pb.Key{Key: key, Block: true, BlockTimeout: timeout})
 	if err != nil {
 		err = normalizeError(err)
-		return NewValue(err)
+		return util.NewValue(err)
 	}
-	return NewValue(bv.Value)
+	return util.NewValue(bv.Value)
 }
 
 // ListPopRight returns and removes the last item in a list.
-func (c *Client) ListPopRight(key string) Value {
+func (c *Client) ListPopRight(key string) util.Value {
 	bv, err := c.mc.ListPopRight(c.ctx, &pb.Key{Key: key})
 	if err != nil {
 		err = normalizeError(err)
-		return NewValue(err)
+		return util.NewValue(err)
 	}
-	return NewValue(bv.Value)
+	return util.NewValue(bv.Value)
 }
 
 // ListPopRightBlock returns and removes the last item in a list, or waits the given number of seconds for a value, timeout of zero waits forever.
-func (c *Client) ListPopRightBlock(key string, timeout int64) Value {
+func (c *Client) ListPopRightBlock(key string, timeout int64) util.Value {
 	bv, err := c.mc.ListPopRight(c.ctx, &pb.Key{Key: key, Block: true, BlockTimeout: timeout})
 	if err != nil {
 		err = normalizeError(err)
-		return NewValue(err)
+		return util.NewValue(err)
 	}
-	return NewValue(bv.Value)
+	return util.NewValue(bv.Value)
 }
 
 // ListHas determines if a list contains an item, returns index or -1 if not found.
 func (c *Client) ListHas(key string, v interface{}) (int64, error) {
-	b, err := NewValue(v).Bytes()
+	b, err := util.NewValue(v).Bytes()
 	if err != nil {
 		return 0, err
 	}
@@ -549,7 +549,7 @@ func (c *Client) ListDelete(key string, index int64) error {
 
 // ListDeleteItem removes the first occurrence of value from a list, returns index or -1 if not found.
 func (c *Client) ListDeleteItem(key string, v interface{}) (int64, error) {
-	b, err := NewValue(v).Bytes()
+	b, err := util.NewValue(v).Bytes()
 	if err != nil {
 		return 0, err
 	}
@@ -563,25 +563,25 @@ func (c *Client) ListDeleteItem(key string, v interface{}) (int64, error) {
 }
 
 // GetHashField gets a single value in a hash.
-func (c *Client) GetHashField(key, field string) Value {
+func (c *Client) GetHashField(key, field string) util.Value {
 	bv, err := c.mc.GetHashField(c.ctx, &pb.HashField{Key: key, Field: field})
 	if err != nil {
 		err = normalizeError(err)
-		return NewValue(err)
+		return util.NewValue(err)
 	}
-	return NewValue(bv.Value)
+	return util.NewValue(bv.Value)
 }
 
 // GetHashFields gets multiple hash values.
-func (c *Client) GetHashFields(key string, fields []string) (map[string]Value, error) {
+func (c *Client) GetHashFields(key string, fields []string) (map[string]util.Value, error) {
 	h, err := c.mc.GetHashFields(c.ctx, &pb.HashFieldSet{Key: key, Field: fields})
 	if err != nil {
 		err = normalizeError(err)
 		return nil, err
 	}
-	m := map[string]Value{}
+	m := map[string]util.Value{}
 	for k, v := range h.Value {
-		m[k] = NewValue(v)
+		m[k] = util.NewValue(v)
 	}
 	return m, nil
 }
@@ -617,18 +617,18 @@ func (c *Client) HashFields(key string) ([]string, error) {
 }
 
 // HashValues gets a list of the values in a hash.
-func (c *Client) HashValues(key string) ([]Value, error) {
+func (c *Client) HashValues(key string) ([]util.Value, error) {
 	lst, err := c.mc.HashValues(c.ctx, &pb.Key{Key: key})
 	if err != nil {
 		err = normalizeError(err)
 		return nil, err
 	}
-	return ListToValues(lst.Value), nil
+	return util.ListToValues(lst.Value), nil
 }
 
 // SetHashField sets a single value in a hash.
 func (c *Client) SetHashField(key, field string, v interface{}) error {
-	b, err := NewValue(v).Bytes()
+	b, err := util.NewValue(v).Bytes()
 	if err != nil {
 		err = normalizeError(err)
 		return err
@@ -639,8 +639,8 @@ func (c *Client) SetHashField(key, field string, v interface{}) error {
 }
 
 // SetHashFields sets multiple values in a hash.
-func (c *Client) SetHashFields(key string, vals map[string]Value) error {
-	m := MapValueToMapBytes(vals)
+func (c *Client) SetHashFields(key string, vals map[string]util.Value) error {
+	m := util.MapValueToMapBytes(vals)
 	_, err := c.mc.SetHashFields(c.ctx, &pb.Hash{Key: key, Value: m})
 	err = normalizeError(err)
 	return err

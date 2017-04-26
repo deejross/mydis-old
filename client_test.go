@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"github.com/deejross/mydis/pb"
+	"github.com/deejross/mydis/util"
 )
 
 func TestClientSet(t *testing.T) {
@@ -95,11 +96,11 @@ func TestClientLock(t *testing.T) {
 	}
 
 	t.Log("INFO: This test will take about 2 seconds to complete")
-	if err := client.LockWithTimeout("key1", 1); err != ErrKeyLocked {
+	if err := client.LockWithTimeout("key1", 1); err != util.ErrKeyLocked {
 		t.Error("Unexpected or no error:", err.Error())
 	}
 
-	if err := client.Set("key1", "val1"); err != ErrKeyLocked {
+	if err := client.Set("key1", "val1"); err != util.ErrKeyLocked {
 		t.Error("Unexpected or no error:", err.Error())
 	}
 
@@ -117,7 +118,7 @@ func TestClientDelete(t *testing.T) {
 		t.Error(err)
 	}
 
-	if s, err := client.Get("key1").String(); err != ErrKeyNotFound {
+	if s, err := client.Get("key1").String(); err != util.ErrKeyNotFound {
 		t.Error("Unexpected value:", s, err)
 	}
 }
@@ -134,9 +135,9 @@ func TestClientClear(t *testing.T) {
 }
 
 func TestClientSetMany(t *testing.T) {
-	if m, err := client.SetMany(map[string]Value{
-		"key2": NewValue("val2"),
-		"key3": NewValue("val3"),
+	if m, err := client.SetMany(map[string]util.Value{
+		"key2": util.NewValue("val2"),
+		"key3": util.NewValue("val3"),
 	}); err != nil {
 		t.Error(err)
 	} else if len(m) != 0 {
@@ -444,7 +445,7 @@ func TestClientGetHashField(t *testing.T) {
 		t.Error("Unexpected value:", s)
 	}
 
-	if _, err := client.GetHashField("hash1", "nofield").String(); err != ErrHashFieldNotFound {
+	if _, err := client.GetHashField("hash1", "nofield").String(); err != util.ErrHashFieldNotFound {
 		t.Error("Unexpected error:", err)
 	}
 }
@@ -478,7 +479,7 @@ func TestClientHashLength(t *testing.T) {
 		t.Error("Unexpected value:", i)
 	}
 
-	if _, err := client.HashLength("none"); err != ErrKeyNotFound {
+	if _, err := client.HashLength("none"); err != util.ErrKeyNotFound {
 		t.Error("Unexpected error:", err)
 	}
 }

@@ -21,6 +21,7 @@ import (
 	"github.com/coreos/etcd/etcdserver"
 	"github.com/coreos/etcd/mvcc"
 	"github.com/deejross/mydis/pb"
+	"github.com/deejross/mydis/util"
 )
 
 // WatchController object.
@@ -142,7 +143,7 @@ func (w *Watcher) backgroundProcess() {
 				continue
 			}
 
-			bkey := StringToBytes(r.Key)
+			bkey := util.StringToBytes(r.Key)
 			end := []byte{}
 			if r.Prefix {
 				end = getPrefix(r.Key)
@@ -159,14 +160,14 @@ func (w *Watcher) backgroundProcess() {
 					Previous: &pb.ByteValue{},
 				}
 				if e.Kv != nil {
-					ev.Current = &pb.ByteValue{Key: BytesToString(e.Kv.Key), Value: e.Kv.Value}
+					ev.Current = &pb.ByteValue{Key: util.BytesToString(e.Kv.Key), Value: e.Kv.Value}
 				}
 				if e.PrevKv != nil {
-					ev.Previous = &pb.ByteValue{Key: BytesToString(e.PrevKv.Key), Value: e.PrevKv.Value}
+					ev.Previous = &pb.ByteValue{Key: util.BytesToString(e.PrevKv.Key), Value: e.PrevKv.Value}
 				}
 
 				for _, r := range w.watching {
-					key := BytesToString(e.Kv.Key)
+					key := util.BytesToString(e.Kv.Key)
 					if r.Key == key || (r.Prefix && strings.HasPrefix(key, r.Key)) {
 						w.eventCh <- ev
 					}

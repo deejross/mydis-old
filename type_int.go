@@ -18,6 +18,7 @@ import (
 	"strings"
 
 	"github.com/deejross/mydis/pb"
+	"github.com/deejross/mydis/util"
 	"github.com/gogo/protobuf/proto"
 	"golang.org/x/net/context"
 )
@@ -31,7 +32,7 @@ func (s *Server) GetInt(ctx context.Context, key *pb.Key) (*pb.IntValue, error) 
 
 	iv := &pb.IntValue{}
 	if err := proto.Unmarshal(bv.Value, iv); err != nil && strings.HasPrefix(err.Error(), "proto: can't skip unknown wire type") {
-		return nil, ErrTypeMismatch
+		return nil, util.ErrTypeMismatch
 	} else if err != nil {
 		return nil, err
 	}
@@ -55,7 +56,7 @@ func (s *Server) IncrementInt(ctx context.Context, iv *pb.IntValue) (*pb.IntValu
 	}
 
 	oldiv, err := s.GetInt(ctx, key)
-	if err == ErrKeyNotFound {
+	if err == util.ErrKeyNotFound {
 		oldiv = &pb.IntValue{Value: 0}
 	} else if err != nil {
 		s.Unlock(ctx, key)
