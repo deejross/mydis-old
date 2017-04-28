@@ -96,6 +96,12 @@ func main() {
 	address := "localhost:8383"
 
 	if argLen > 1 {
+		if os.Args[1] == "version" || os.Args[1] == "-version" || os.Args[1] == "--version" || os.Args[1] == "-v" {
+			fmt.Println(mydisBase.VERSION)
+			os.Exit(0)
+			return
+		}
+
 		address = os.Args[1]
 		if !strings.Contains(address, ":") {
 			address += ":8383"

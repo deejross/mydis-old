@@ -6,8 +6,6 @@
 [![Build Status](https://semaphoreci.com/api/v1/deejross/mydis/branches/master/shields_badge.svg)](https://semaphoreci.com/deejross/mydis)
 [![GoDoc](https://godoc.org/github.com/deejross/mydis?status.svg)](https://godoc.org/github.com/deejross/mydis)
 
-Version: 1.2.2
-
 Introduction
 ------------
 Distributed, reliable database and cache library, server, and client. Inspired by Redis, Mydis is written entirely in Go and can be used as a library, embedded into an existing application, or as a standalone client/server.

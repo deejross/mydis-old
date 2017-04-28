@@ -35,7 +35,7 @@ var suffixForLocks = "*_MYDIS_LOCK"
 var ZeroByte = []byte{0}
 
 // VERSION of Mydis
-var VERSION = "1.2.2"
+var VERSION = "1.2.4"
 
 // ConfigFromYAML creates a Config object from YAML.
 func ConfigFromYAML(b []byte) (*embed.Config, error) {
