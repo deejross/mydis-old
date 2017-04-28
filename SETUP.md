@@ -36,8 +36,11 @@ cd $GOPATH/src/google.golang.org/grpc
 git checkout v1.0.4
 cd $GOPATH/src/github.com/grpc-ecosystem/grpc-gateway
 git checkout 84398b94e188ee336f307779b57b3aa91af7063c
+go install github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway
+go install github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger
 cd $GOPATH/src/github.com/golang/protobuf
 git checkout 4bd1920723d7b7c925de087aa32e2187708897f7
+go install github.com/golang/protobuf/protoc-gen-go
 ```
 
 Clone This Repo

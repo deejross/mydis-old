@@ -854,6 +854,7 @@ func (c *Client) backgroundProcess() {
 
 	// re-watch keys after a reconnect
 	go func() {
+		c.lock.RLock()
 		for key := range c.watching {
 			prefix := false
 			if strings.HasSuffix(key, suffixForKeysUsingPrefix) {
@@ -861,6 +862,7 @@ func (c *Client) backgroundProcess() {
 			}
 			c.Watch(key, prefix)
 		}
+		c.lock.RUnlock()
 	}()
 
 	// receiver
