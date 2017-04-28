@@ -19,19 +19,16 @@ import (
 	"crypto/tls"
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"strings"
-
-	"google.golang.org/grpc"
-
-	"net"
-
 	"time"
 
 	"github.com/coreos/etcd/embed"
 	"github.com/coreos/pkg/capnslog"
 	"github.com/deejross/mydis/pb"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 )
 

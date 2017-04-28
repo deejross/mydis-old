@@ -19,11 +19,9 @@ import (
 	"log"
 	"net/url"
 	"os"
-	"testing"
-
 	"strings"
-
 	"sync"
+	"testing"
 
 	"github.com/coreos/etcd/embed"
 	myc "github.com/deejross/mydis/client"

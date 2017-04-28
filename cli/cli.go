@@ -26,6 +26,7 @@ import (
 
 	mydisBase "github.com/deejross/mydis"
 	mydis "github.com/deejross/mydis/client"
+	mydisServer "github.com/deejross/mydis/mydis"
 	"github.com/deejross/mydis/pb"
 	"github.com/deejross/mydis/util"
 )
@@ -589,7 +590,7 @@ func command(client *mydis.Client, cmd string, args []string) error {
 	} else if cmd == "ROLEGRANTPERM" {
 		if len(args) >= 3 {
 			role := args[0]
-			perm := mydisBase.GetPermission(args[1], args[2])
+			perm := mydisServer.GetPermission(args[1], args[2])
 			if perm == nil {
 				return errors.New("Unrecognized permType: " + args[2])
 			}
@@ -599,7 +600,7 @@ func command(client *mydis.Client, cmd string, args []string) error {
 	} else if cmd == "ROLEREVOKEPERM" {
 		if len(args) >= 3 {
 			role := args[0]
-			perm := mydisBase.GetPermission(args[1], args[2])
+			perm := mydisServer.GetPermission(args[1], args[2])
 			if perm == nil {
 				return errors.New("Unrecognized permType: " + args[2])
 			}

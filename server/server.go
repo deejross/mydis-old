@@ -21,7 +21,7 @@ import (
 	"os"
 
 	"github.com/coreos/etcd/embed"
-	"github.com/deejross/mydis"
+	"github.com/deejross/mydis/mydis"
 )
 
 var (
